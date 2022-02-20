@@ -1,10 +1,10 @@
 """
 Particle3D class to describe point particles in 3D space.
 
-An instance describes a particle in Euclidean 3D space :
+An instance describes a particle in Euclidean 3D space:
 - Velocity and Position are [3] arrays
 
-Included methods :
+Included methods:
 - time integrators
 - calculations
 - updates positions and velocities
@@ -23,10 +23,17 @@ class Particle3D(object) :
 
         Properties:
 
-    label : name of the particle
-    mass : mass of the particle
-    position : position of the particle
-    velocity : velocity of the particle
+    label: name of the particle
+    mass: mass of the particle
+    position: position of the particle
+    velocity: velocity of the particle
+
+        Methods:
+
+    __init__ : initialises a particle in 3D space
+    __str__ :
+
+
 
     """
 
