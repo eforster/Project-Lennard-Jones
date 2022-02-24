@@ -9,48 +9,6 @@ import numpy as np
 import matplotlib.pyplot as pyplot
 from particle3D import Particle3D
 
-def morse_force(particle, different_particle, r_e, d_e, alpha):
-    """
-    Method to return the force on a particle
-    in a double well potential using Morse Potential.
-    Force is given by:
-
-    F(r1, r2) = 2 * alpha * d_e * (1 - exp(-alpha(r12 - r_e))) * exp(-alpha(r12 - r_e)) * r12_hat
-
-    :param particle: Particle3D instance
-    :param different_particle: Particle3D instance
-    :param r_e: parameter r_e, controls position of the potential minimum
-    :param d_e: parameter d_e, controls curvature of the potential minimum
-    :param alpha: parameter alpha, controls depth of the potential minimum
-
-    :return: force acting on particle as Numpy array
-    """
-    r12 = different_particle.pos - particle.pos
-    mag_r12 = np.linalg.norm(r12)
-    r12_hat = r12 / mag_r12
-    force = 2 * alpha * d_e * (1 - math.exp(-alpha * (mag_r12 - r_e))) * math.exp(-alpha * (mag_r12 - r_e)) * r12_hat
-    return force
-
-
-def morse_potential(particle, different_particle, r_e, d_e, alpha):
-    """
-    Method to return Morse Potential
-    of particle in double-well potential using Morse Potential:
-
-    U(r1, r2) = d_e * ((1 - exp(-alpha(r12 - r_e))) ** 2) - 1)
-
-    :param particle: Particle3D instance
-    :param different_particle: Particle3D instance
-    :param r_e: parameter r_e, controls position of the potential minimum
-    :param d_e: parameter d_e, controls curvature of the potential minimum
-    :param alpha: parameter alpha, controls depth of the potential minimum
-
-    :return: Morse Potential of particle as float
-    """
-    r12 = different_particle.pos - particle.pos
-    mag_r12 = np.linalg.norm(r12)
-    potential = d_e * (((1 - math.exp(-alpha * (mag_r12 - r_e))) ** 2) - 1)
-    return potential
 
 def pair_separation(particle, different_particle, number_particles):
 
@@ -69,6 +27,44 @@ def periodic_boundary_conditions(particle, box_size, number_particles) :
     move = particle.update_2nd_position(dt, force)
     pbc = move * np.linalg.norm(box_size)
     return pbc
+
+def lennard_jones_force(pair_sep, cut_off_radius, number_particles) :
+    """
+
+    :param number_particles:
+    :param pair_sep:
+    :param cut_off_radius:
+    :return:
+    """
+
+    if pair_sep > cut_off_radius :
+        lj_force = 0
+        return lj_force
+
+    else :
+        for j in range(number_particles) :
+
+            mod_pair_sep = np.linalg.norm(pair_sep)
+            lj_force = - 48 * ((mod_pair_sep ** - 14) - (1 / 2) * (mod_pair_sep ** - 8)) * pair_sep
+            return lj_force
+
+def lennard_jones_potential(position1, position2, number_particles, pair_sep) :
+
+    """
+
+    :param position1:
+    :param position2:
+    :return:
+    """
+
+    mod_pair_sep = np.linalg.norm(pair_sep)
+
+    for i in range(number_particles) :
+        for j in range(i + 1, number_particles) :
+            lj_potential = 4 * ((pair_sep ** - 12) - (pair_sep ** - 6))
+
+    return lj_potential
+
 
 # Begin main code
 def main():
@@ -116,75 +112,62 @@ def main():
             line3 = infile.readline()  # Processes line 3 of input file
             line4 = infile.readline()  # Processes line 4 of input file
             line4 = line4.split()  # Separates the parameters in line 4
+            line5 = infile.readline()   # Processes line 5 of input file
+            line5 = line5.split()
 
             # Helpful error message if there is not 3 parameters in line 4
-            if len(line4) != 3:
-                print("Wrong number of arguments in line 4 of input data file, i.e. Morse potential parameters. ")
-
-            else:
-                d_e = float(line4[0])  # Reads in first Morse potential parameter
-                r_e = float(line4[1])  # Reads in second Morse potential parameter
-                alpha = float(line4[2])  # Reads in third Morse potential parameter
-
-            line5 = infile.readline()  # Processes line 5 of input file
-            line5 = line5.split()  # Separates the parameters in line 5
-            line6 = infile.readline()  # Processes line 6 of input file
-            line6 = line6.split()  # Separates the parameters in line 6
-
-            # Helpful error message if there is not 8 parameters in lines 5 and 6
-            if len(line5) and len(line6) != 8:
+            if len(line4) and len(line5) != 8:
                 print("Wrong number of arguments in line 5 and 6, i.e. initial conditions of particles. ")
 
             else:
 
-                pos1 = np.array([float(line5[2]), float(line5[3]), float(line5[4])])  # Sets up Particle 1 position
-                vel1 = np.array([float(line5[5]), float(line5[6]), float(line5[7])])  # Sets up Particle 1 velocity
+                position1 = np.array([float(line4[2]), float(line4[3]), float(line4[4])])  # Sets up Particle 1 position
+                velocity1 = np.array([float(line4[5]), float(line4[6]), float(line4[7])])  # Sets up Particle 1 velocity
 
-                p1 = Particle3D(str(line5[0]), float(line5[1]), pos1,
-                                vel1)  # Sets up Particle 1 as a particle3D instance
+                particle1 = Particle3D(str(line4[0]), float(line4[1]), position1, velocity1)  # Sets up Particle 1 as a particle3D instance
 
-                pos2 = np.array([float(line6[2]), float(line6[3]), float(line6[4])])  # Sets up Particle 2 position
-                vel2 = np.array([float(line6[5]), float(line6[6]), float(line6[7])])  # Sets up Particle 2 velocity
+                position2 = np.array([float(line5[2]), float(line5[3]), float(line5[4])])  # Sets up Particle 2 position
+                velocity2 = np.array([float(line5[5]), float(line5[6]), float(line5[7])])  # Sets up Particle 2 velocity
 
-                p2 = Particle3D(str(line6[0]), float(line6[1]), pos2,
-                                vel2)  # Sets up Particle 2 as a particle3D instance
+                particle2 = Particle3D(str(line5[0]), float(line5[1]), position2, velocity2)  # Sets up Particle 2 as a particle3D instance
+
 
     infile.close()
 
     # Part 2.) Specifies initial conditions
 
     time = 0.0
-    p1_to_p2 = np.linalg.norm(p2.position - p1.position)
-    energy = p1.calculate_kinetic_energy() + p2.calculate_kinetic_energy() + morse_potential(p1, p2, r_e, d_e, alpha)  # Sums up initial energy total of system
+    p1_to_p2 = np.linalg.norm(particle2.position - particle1.position)
+    energy = particle1.calculate_kinetic_energy() + particle2.calculate_kinetic_energy() + lennard_jones_potential( )
     outfile.write("{0:f} {1:f} {2:12.8f}\n".format(time, p1_to_p2, energy))  # Formats output file being written
 
     # Get initial force
-    force1 = morse_force(p1, p2, r_e, d_e, alpha)
+    force1 = lennard_jones_force()
     force2 = - force1
 
     # Part 3.) Initialises data lists for plotting later
 
     time_list = [time]
-    pos1_list = [p1.position]
-    pos2_list = [p2.position]
-    pos_list = [np.linalg.norm(p2.position - p1.position)]  # Position list is | r2 - r1 | from particle positions
+    pos1_list = [particle1.position]
+    pos2_list = [particle2.position]
+    pos_list = [np.linalg.norm(particle2.position - particle1.position)]  # Position list is | r2 - r1 | from particle positions
     energy_list = [energy]
 
     # Part 4.) Starts a time integration loop
 
     for i in range(numstep):
         # Update particle position
-        p1.update_2nd_position(dt, force1)
-        p2.update_2nd_position(dt, force2)
-        p1_to_p2 = np.linalg.norm(p2.position - p1.position)
+        particle1.update_2nd_position(dt, force1)
+        particle2.update_2nd_position(dt, force2)
+        p1_to_p2 = np.linalg.norm(particle2.position - particle1.position)
 
         # Update force
-        force1_new = morse_force(p1, p2, r_e, d_e, alpha)
+        force1_new = lennard_jones_force()
         force2_new = - force1_new
 
         # Update particle velocity by averaging current and new forces
-        p1.update_velocity(dt, 0.5 * (force1 + force1_new))
-        p2.update_velocity(dt, 0.5 * (force2 + force2_new))
+        particle1.update_velocity(dt, 0.5 * (force1 + force1_new))
+        particle2.update_velocity(dt, 0.5 * (force2 + force2_new))
 
         # Re-define force value
         force1 = force1_new
@@ -194,13 +177,13 @@ def main():
         time += dt
 
         # Output particle information
-        energy = p1.calculate_kinetic_energy() + p2.calculate_kinetic_energy() + morse_potential(p1, p2, r_e, d_e, alpha)
+        energy = particle1.calculate_kinetic_energy() + particle2.calculate_kinetic_energy() + lennard_jones_potential()
         outfile.write("{0:f} {1:f} {2:12.8f}\n".format(time, p1_to_p2, energy))
 
         # Append information to data lists
         time_list.append(time)
-        pos1_list.append(p1.position)
-        pos2_list.append(p2.position)
+        pos1_list.append(particle1.position)
+        pos2_list.append(particle2.position)
         pos_list.append(p1_to_p2)
         energy_list.append(energy)
 
@@ -228,7 +211,7 @@ def main():
 
     # Part 7.) Measures the energy inaccuracy of the simulation and prints it to the screen
 
-    initial_energy = p1.calculate_kinetic_energy() + p2.calculate_kinetic_energy() + morse_potential(p1, p2, r_e, d_e, alpha)
+    initial_energy = particle1.calculate_kinetic_energy() + particle2.calculate_kinetic_energy() + lennard_jones_potential()
     max_energy = max(energy_list)
     min_energy = min(energy_list)
 
@@ -241,5 +224,3 @@ def main():
 # Execute main method, but only when directly invoked
 if __name__ == "__main__":
     main()
-
-

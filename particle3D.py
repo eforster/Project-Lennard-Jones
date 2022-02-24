@@ -136,7 +136,7 @@ class Particle3D(object) :
         Initialises a Particle3D instance when given an input file handle.
 
         The input file should contain one line per particle in the following format:
-        label   <mass>  <x> <y> <z>    <vx> <vy> <vz>
+        label   <mass>   <x> <y> <z>   <vx> <vy> <vz>
 
         :param input_file: readable file handle in the above format
 
