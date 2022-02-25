@@ -52,8 +52,12 @@ def lennard_jones_potential(position1, position2, number_particles, pair_sep) :
 
     """
 
+
     :param position1:
     :param position2:
+    :param pair_sep:
+    :param number_particles:
+
     :return:
     """
 
