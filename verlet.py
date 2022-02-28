@@ -16,6 +16,8 @@ def pair_separation(particle, different_particle, number_particles):
         for j in range(number_particles):
             pair_sep = particle.position[i] - different_particle.position[j]
 
+            return pair_sep
+
 def mirror_image_convention(pair_sep, box_size, number_particles) :
 
     mic = ((pair_sep + box_size / 2) * np.linalg.norm(box_size)) - (box_size / 2)
@@ -23,9 +25,10 @@ def mirror_image_convention(pair_sep, box_size, number_particles) :
 
 def periodic_boundary_conditions(particle, box_size, number_particles) :
 
-    move = particle.update_2nd_position(dt, force)
-    pbc = move * np.linalg.norm(box_size)
-    return pbc
+    for i in range(number_particles) :
+
+        pbc = particle.position[i] * np.linalg.norm(box_size)
+        return pbc
 
 def lennard_jones_force(pair_sep, cut_off_radius, number_particles) :
     """
@@ -36,24 +39,22 @@ def lennard_jones_force(pair_sep, cut_off_radius, number_particles) :
     :return:
     """
 
-    if pair_sep > cut_off_radius :
-        lj_force = 0
-        return lj_force
-
-    else :
-        for j in range(number_particles) :
-
+    if pair_sep < cut_off_radius :
+        for j in range(number_particles):
             mod_pair_sep = np.linalg.norm(pair_sep)
             lj_force = - 48 * ((mod_pair_sep ** - 14) - (1 / 2) * (mod_pair_sep ** - 8)) * pair_sep
             return lj_force
 
-def lennard_jones_potential(position1, position2, number_particles, pair_sep) :
+    else :
+        for j in range(number_particles) :
+            lj_force = 0
+            return lj_force
+
+def lennard_jones_potential(number_particles, pair_sep) :
 
     """
 
 
-    :param position1:
-    :param position2:
     :param pair_sep:
     :param number_particles:
 
@@ -139,13 +140,16 @@ def main():
 
     # Part 2.) Specifies initial conditions
 
+    cut_off_radius = 3.5
+    number_particles = 2
     time = 0.0
     p1_to_p2 = np.linalg.norm(particle2.position - particle1.position)
-    energy = particle1.calculate_kinetic_energy() + particle2.calculate_kinetic_energy() + lennard_jones_potential( )
+    pair_sep = pair_separation(particle1, particle2, number_particles)
+    energy = particle1.calculate_kinetic_energy() + particle2.calculate_kinetic_energy() + lennard_jones_potential(number_particles, pair_sep)
     outfile.write("{0:f} {1:f} {2:12.8f}\n".format(time, p1_to_p2, energy))  # Formats output file being written
 
     # Get initial force
-    force1 = lennard_jones_force()
+    force1 = lennard_jones_force(pair_sep, cut_off_radius, number_particles)
     force2 = - force1
 
     # Part 3.) Initialises data lists for plotting later
@@ -165,7 +169,7 @@ def main():
         p1_to_p2 = np.linalg.norm(particle2.position - particle1.position)
 
         # Update force
-        force1_new = lennard_jones_force()
+        force1_new = lennard_jones_force(pair_sep, cut_off_radius, number_particles)
         force2_new = - force1_new
 
         # Update particle velocity by averaging current and new forces
@@ -180,7 +184,7 @@ def main():
         time += dt
 
         # Output particle information
-        energy = particle1.calculate_kinetic_energy() + particle2.calculate_kinetic_energy() + lennard_jones_potential()
+        energy = particle1.calculate_kinetic_energy() + particle2.calculate_kinetic_energy() + lennard_jones_potential(number_particles, pair_sep)
         outfile.write("{0:f} {1:f} {2:12.8f}\n".format(time, p1_to_p2, energy))
 
         # Append information to data lists
@@ -214,7 +218,7 @@ def main():
 
     # Part 7.) Measures the energy inaccuracy of the simulation and prints it to the screen
 
-    initial_energy = particle1.calculate_kinetic_energy() + particle2.calculate_kinetic_energy() + lennard_jones_potential()
+    initial_energy = particle1.calculate_kinetic_energy() + particle2.calculate_kinetic_energy() + lennard_jones_potential(number_particles, pair_sep)
     max_energy = max(energy_list)
     min_energy = min(energy_list)
 
