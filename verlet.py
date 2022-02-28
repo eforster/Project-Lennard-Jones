@@ -15,7 +15,6 @@ def pair_separation(particle, different_particle, number_particles):
     for i in range(number_particles):
         for j in range(number_particles):
             pair_sep = particle.position[i] - different_particle.position[j]
-            print(pair_sep)
 
 def mirror_image_convention(pair_sep, box_size, number_particles) :
 
@@ -67,7 +66,7 @@ def lennard_jones_potential(position1, position2, number_particles, pair_sep) :
         for j in range(i + 1, number_particles) :
             lj_potential = 4 * ((pair_sep ** - 12) - (pair_sep ** - 6))
 
-    return lj_potential
+            return lj_potential
 
 
 # Begin main code
