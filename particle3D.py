@@ -71,7 +71,7 @@ class Particle3D(object) :
         :return xyz_string: (label, x, y, z)
         """
 
-        xyz_string = str(self.label + "   " + str(self.position[0]) + "  " + str(self.position[1]) + "  " + str(self.pos[2]))
+        xyz_string = f"{self.label} {self.position[0]} {self.position[1]} {self.position[2]}\n"
         return xyz_string
 
     def calculate_kinetic_energy(self) :

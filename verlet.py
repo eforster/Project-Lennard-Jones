@@ -8,7 +8,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as pyplot
 from particle3D import Particle3D
-
+import mdutilities as md
 
 def pair_separation(particle, different_particle, number_particles):
 
@@ -44,6 +44,12 @@ def lennard_jones_force(pair_sep, cut_off_radius, number_particles) :
             mod_pair_sep = np.linalg.norm(pair_sep)
             lj_force = - 48 * ((mod_pair_sep ** - 14) - (1 / 2) * (mod_pair_sep ** - 8)) * pair_sep
             return lj_force
+
+    elif pair_sep == cut_off_radius :
+
+        mod_pair_sep = np.linalg.norm(cut_off_radius)
+        lj_force = - 48 * ((mod_pair_sep ** - 14) - (1 / 2) * (mod_pair_sep ** - 8)) * cut_off_radius
+        return lj_force
 
     else :
         for j in range(number_particles) :
@@ -106,34 +112,13 @@ def main():
             line2 = line2.split()  # Separates the parameters in line 2
 
             # Helpful error message if there is not 2 parameters in line 2
-            if len(line2) != 2:
+            if len(line2) != 3:
                 print("Wrong number of arguments in line 2 of input data file, i.e. simulation parameters. ")
 
             else:
                 dt = float(line2[0])  # Reads in time-step for simulation
-                numstep = int(line2[1])  # Reads in number of steps for simulation
-
-            line3 = infile.readline()  # Processes line 3 of input file
-            line4 = infile.readline()  # Processes line 4 of input file
-            line4 = line4.split()  # Separates the parameters in line 4
-            line5 = infile.readline()   # Processes line 5 of input file
-            line5 = line5.split()
-
-            # Helpful error message if there is not 3 parameters in line 4
-            if len(line4) and len(line5) != 8:
-                print("Wrong number of arguments in line 5 and 6, i.e. initial conditions of particles. ")
-
-            else:
-
-                position1 = np.array([float(line4[2]), float(line4[3]), float(line4[4])])  # Sets up Particle 1 position
-                velocity1 = np.array([float(line4[5]), float(line4[6]), float(line4[7])])  # Sets up Particle 1 velocity
-
-                particle1 = Particle3D(str(line4[0]), float(line4[1]), position1, velocity1)  # Sets up Particle 1 as a particle3D instance
-
-                position2 = np.array([float(line5[2]), float(line5[3]), float(line5[4])])  # Sets up Particle 2 position
-                velocity2 = np.array([float(line5[5]), float(line5[6]), float(line5[7])])  # Sets up Particle 2 velocity
-
-                particle2 = Particle3D(str(line5[0]), float(line5[1]), position2, velocity2)  # Sets up Particle 2 as a particle3D instance
+                numstep = int(line2[1])  # Reads in number of steps for
+                number_particles = int(line2[2])
 
 
     infile.close()
@@ -141,12 +126,28 @@ def main():
     # Part 2.) Specifies initial conditions
 
     cut_off_radius = 3.5
-    number_particles = 2
+    particle_list = []
+    for pp in range(number_particles) :
+        particle_list.append(
+            Particle3D(
+                label=f"n_{pp}",
+                mass=1,
+                position=np.zeros(3),
+                velocity=np.zeros(3)
+                )
+            )
+    rho = 1
+    md.set_initial_positions(rho, particle_list)
+    for pp in particle_list:
+        print(pp)
+    quit()
+
     time = 0.0
     p1_to_p2 = np.linalg.norm(particle2.position - particle1.position)
     pair_sep = pair_separation(particle1, particle2, number_particles)
     energy = particle1.calculate_kinetic_energy() + particle2.calculate_kinetic_energy() + lennard_jones_potential(number_particles, pair_sep)
-    outfile.write("{0:f} {1:f} {2:12.8f}\n".format(time, p1_to_p2, energy))  # Formats output file being written
+    for pp in number_particles:
+        outfile.write(pp.__str__())  # Formats output file being written
 
     # Get initial force
     force1 = lennard_jones_force(pair_sep, cut_off_radius, number_particles)
@@ -200,9 +201,9 @@ def main():
 
     # Part 5.) Plots particle trajectory to screen
 
-    pyplot.title('Velocity Verlet : Position vs Time')
-    pyplot.xlabel('Time (* 1.018050571e-14 s) : ')
-    pyplot.ylabel('Position (Angstroms) : ')
+    pyplot.title('Position vs Time')
+    pyplot.xlabel('Time : ')
+    pyplot.ylabel('Position : ')
     pyplot.plot(time_list, pos1_list)
     pyplot.plot(time_list, pos2_list)
     pyplot.show()
@@ -210,9 +211,9 @@ def main():
     # Part 6.) Plots particle energy to screen
 
     # Plot particle energy to screen
-    pyplot.title('Velocity Verlet : Total Energy vs Time')
-    pyplot.xlabel('Time (* 1.018050571e-14 s) : ')
-    pyplot.ylabel('Energy (eV) : ')
+    pyplot.title('Total Energy vs Time')
+    pyplot.xlabel('Time : ')
+    pyplot.ylabel('Energy : ')
     pyplot.plot(time_list, energy_list)
     pyplot.show()
 
