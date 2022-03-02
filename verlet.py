@@ -10,13 +10,11 @@ import matplotlib.pyplot as pyplot
 from particle3D import Particle3D
 import mdutilities as md
 
-def pair_separation(particle, different_particle, number_particles):
+def pair_separation(particle_list):
 
-    for i in range(number_particles):
-        for j in range(number_particles):
-            pair_sep = particle.position[i] - different_particle.position[j]
-
-            return pair_sep
+    for i in range(len(particle_list)):
+        for j in range(len(particle_list):
+    return separations
 
 def mirror_image_convention(pair_sep, box_size, number_particles) :
 
@@ -127,26 +125,36 @@ def main():
 
     cut_off_radius = 3.5
     particle_list = []
-    for pp in range(number_particles) :
+
+    for particle in range(number_particles) :
         particle_list.append(
             Particle3D(
-                label=f"n_{pp}",
-                mass=1,
-                position=np.zeros(3),
-                velocity=np.zeros(3)
+                label = f"n_{particle}",
+                mass = 1,
+                position = np.zeros(3),
+                velocity = np.zeros(3)
                 )
             )
+
     rho = 1
-    md.set_initial_positions(rho, particle_list)
-    for pp in particle_list:
-        print(pp)
+    time = 0.0
+    temperature = 1
+
+    box_size,full = md.set_initial_positions(rho, particle_list)
+    box_size=box_size[0]
+    md.set_initial_velocities(temperature, particle_list)
+    for particle in particle_list:
+        for different_particle in particle_list :
+            print(particle)
+            pair_sep = pair_separation(number_particles, particle, different_particle)
+            mirror_image_convention(pair_sep, box_size, number_particles)
+            print(different_particle)
+
     quit()
 
-    time = 0.0
-    p1_to_p2 = np.linalg.norm(particle2.position - particle1.position)
-    pair_sep = pair_separation(particle1, particle2, number_particles)
     energy = particle1.calculate_kinetic_energy() + particle2.calculate_kinetic_energy() + lennard_jones_potential(number_particles, pair_sep)
-    for pp in number_particles:
+
+    for particle in number_particles:
         outfile.write(pp.__str__())  # Formats output file being written
 
     # Get initial force
@@ -158,7 +166,6 @@ def main():
     time_list = [time]
     pos1_list = [particle1.position]
     pos2_list = [particle2.position]
-    pos_list = [np.linalg.norm(particle2.position - particle1.position)]  # Position list is | r2 - r1 | from particle positions
     energy_list = [energy]
 
     # Part 4.) Starts a time integration loop
@@ -167,7 +174,6 @@ def main():
         # Update particle position
         particle1.update_2nd_position(dt, force1)
         particle2.update_2nd_position(dt, force2)
-        p1_to_p2 = np.linalg.norm(particle2.position - particle1.position)
 
         # Update force
         force1_new = lennard_jones_force(pair_sep, cut_off_radius, number_particles)
@@ -192,7 +198,6 @@ def main():
         time_list.append(time)
         pos1_list.append(particle1.position)
         pos2_list.append(particle2.position)
-        pos_list.append(p1_to_p2)
         energy_list.append(energy)
 
     # Post-simulation:
