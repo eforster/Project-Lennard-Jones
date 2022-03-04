@@ -10,16 +10,26 @@ import matplotlib.pyplot as pyplot
 from particle3D import Particle3D
 import mdutilities as md
 
-def pair_separation(particle_list):
+def mirror_image_convention(particle, different_particle, box_size) :
 
-    for i in range(len(particle_list)):
-        for j in range(len(particle_list):
-    return separations
+    mic = ((particle.position - different_particle.position + box_size / 2) * np.linalg.norm(box_size)) - (box_size / 2)
+    modulus_mic = np.linalg.norm(mic)
+    return modulus_mic
 
-def mirror_image_convention(pair_sep, box_size, number_particles) :
+def calculate_pair_separation(particle_list, box_size):
 
-    mic = ((pair_sep + box_size / 2) * np.linalg.norm(box_size)) - (box_size / 2)
-    return mic
+    N = len(particle_list)
+    separations_matrix = np.zeros((N, N, 3))
+
+    for i in range(N) :
+        for j in range(i + 1, N) :
+
+            separation = mirror_image_convention(particle_list[i], particle_list[j], box_size)
+
+            separations_matrix[i, j] = separation
+            separations_matrix[j, i] = - separation
+
+    return separations_matrix
 
 def periodic_boundary_conditions(particle, box_size, number_particles) :
 
@@ -28,15 +38,12 @@ def periodic_boundary_conditions(particle, box_size, number_particles) :
         pbc = particle.position[i] * np.linalg.norm(box_size)
         return pbc
 
-def lennard_jones_force(pair_sep, cut_off_radius, number_particles) :
-    """
+def lennard_jones_force(particle_list, box_size, cut_off_radius) :
 
-    :param number_particles:
-    :param pair_sep:
-    :param cut_off_radius:
-    :return:
-    """
+    N = len(particle_list)
+    
 
+"""
     if pair_sep < cut_off_radius :
         for j in range(number_particles):
             mod_pair_sep = np.linalg.norm(pair_sep)
@@ -53,6 +60,7 @@ def lennard_jones_force(pair_sep, cut_off_radius, number_particles) :
         for j in range(number_particles) :
             lj_force = 0
             return lj_force
+"""
 
 def lennard_jones_potential(number_particles, pair_sep) :
 
@@ -140,22 +148,17 @@ def main():
     time = 0.0
     temperature = 1
 
-    box_size,full = md.set_initial_positions(rho, particle_list)
-    box_size=box_size[0]
+    box_size, full_lattice = md.set_initial_positions(rho, particle_list)
+    box_size = box_size[0]
     md.set_initial_velocities(temperature, particle_list)
     for particle in particle_list:
-        for different_particle in particle_list :
-            print(particle)
-            pair_sep = pair_separation(number_particles, particle, different_particle)
-            mirror_image_convention(pair_sep, box_size, number_particles)
-            print(different_particle)
+        separations_matrix = calculate_pair_separation(particle_list, number_particles)
+        print(separations_matrix)
+
+    for particle in range(number_particles) :
+        outfile.write(particle.__str__())  # Formats output file being written
 
     quit()
-
-    energy = particle1.calculate_kinetic_energy() + particle2.calculate_kinetic_energy() + lennard_jones_potential(number_particles, pair_sep)
-
-    for particle in number_particles:
-        outfile.write(pp.__str__())  # Formats output file being written
 
     # Get initial force
     force1 = lennard_jones_force(pair_sep, cut_off_radius, number_particles)
