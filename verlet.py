@@ -11,15 +11,29 @@ from particle3D import Particle3D
 import mdutilities as md
 
 def mirror_image_convention(particle, different_particle, box_size) :
+    """
+
+    :param particle:
+    :param different_particle:
+    :param box_size:
+    :return:
+    """
 
     mic = ((particle.position - different_particle.position + box_size / 2) * np.linalg.norm(box_size)) - (box_size / 2)
     modulus_mic = np.linalg.norm(mic)
     return modulus_mic
 
 def calculate_pair_separation(particle_list, box_size):
+    """
+
+    :param particle_list:
+    :param box_size:
+    :return:
+    """
 
     N = len(particle_list)
     separations_matrix = np.zeros((N, N, 3))
+    pair_sep = float
 
     for i in range(N) :
         for j in range(i + 1, N) :
@@ -29,9 +43,18 @@ def calculate_pair_separation(particle_list, box_size):
             separations_matrix[i, j] = separation
             separations_matrix[j, i] = - separation
 
-    return separations_matrix
+            pair_sep = np.linalg.norm(separations_matrix[i, j])
+
+    return separations_matrix, pair_sep
 
 def periodic_boundary_conditions(particle, box_size, number_particles) :
+    """
+
+    :param particle:
+    :param box_size:
+    :param number_particles:
+    :return:
+    """
 
     for i in range(number_particles) :
 
@@ -39,47 +62,56 @@ def periodic_boundary_conditions(particle, box_size, number_particles) :
         return pbc
 
 def lennard_jones_force(particle_list, box_size, cut_off_radius) :
+    """
+
+    :param particle_list:
+    :param box_size:
+    :param cut_off_radius:
+    :return:
+    """
 
     N = len(particle_list)
-    
+    lj_force = float
+    pair_sep = calculate_pair_separation(particle_list, box_size)
+    pair_sep = pair_sep[1]
 
-"""
     if pair_sep < cut_off_radius :
-        for j in range(number_particles):
-            mod_pair_sep = np.linalg.norm(pair_sep)
-            lj_force = - 48 * ((mod_pair_sep ** - 14) - (1 / 2) * (mod_pair_sep ** - 8)) * pair_sep
-            return lj_force
+        for j in range(N):
+            lj_force = - 48 * ((pair_sep ** - 14) - (1 / 2) * (pair_sep ** - 8)) * pair_sep
 
     elif pair_sep == cut_off_radius :
 
-        mod_pair_sep = np.linalg.norm(cut_off_radius)
-        lj_force = - 48 * ((mod_pair_sep ** - 14) - (1 / 2) * (mod_pair_sep ** - 8)) * cut_off_radius
-        return lj_force
+        lj_force = - 48 * ((pair_sep ** - 14) - (1 / 2) * (pair_sep ** - 8)) * cut_off_radius
 
     else :
-        for j in range(number_particles) :
+        for j in range(N) :
             lj_force = 0
-            return lj_force
-"""
 
-def lennard_jones_potential(number_particles, pair_sep) :
+    return lj_force
+
+
+def lennard_jones_potential(particle_list, box_size) :
 
     """
 
 
-    :param pair_sep:
-    :param number_particles:
+    :param particle_list:
+    :param box_size:
 
     :return:
     """
 
-    mod_pair_sep = np.linalg.norm(pair_sep)
+    N = len(particle_list)
+    lj_potential = float
+    pair_sep = calculate_pair_separation(particle_list, box_size)
+    pair_sep = pair_sep[1]
 
-    for i in range(number_particles) :
-        for j in range(i + 1, number_particles) :
+    for i in range(N) :
+        for j in range(i + 1, N) :
+
             lj_potential = 4 * ((pair_sep ** - 12) - (pair_sep ** - 6))
 
-            return lj_potential
+    return lj_potential
 
 
 # Begin main code
@@ -151,9 +183,14 @@ def main():
     box_size, full_lattice = md.set_initial_positions(rho, particle_list)
     box_size = box_size[0]
     md.set_initial_velocities(temperature, particle_list)
+
     for particle in particle_list:
         separations_matrix = calculate_pair_separation(particle_list, number_particles)
         print(separations_matrix)
+        lj_force = lennard_jones_force(particle_list, box_size, cut_off_radius)
+        print(lj_force)
+        lj_potential = lennard_jones_potential(particle_list, box_size)
+        print(lj_potential)
 
     for particle in range(number_particles) :
         outfile.write(particle.__str__())  # Formats output file being written
@@ -161,22 +198,20 @@ def main():
     quit()
 
     # Get initial force
-    force1 = lennard_jones_force(pair_sep, cut_off_radius, number_particles)
+    force1 = lennard_jones_force(particle_list, box_size, cut_off_radius)
     force2 = - force1
 
     # Part 3.) Initialises data lists for plotting later
 
     time_list = [time]
-    pos1_list = [particle1.position]
-    pos2_list = [particle2.position]
+    position_list = [particle[i].position]
     energy_list = [energy]
 
     # Part 4.) Starts a time integration loop
 
     for i in range(numstep):
         # Update particle position
-        particle1.update_2nd_position(dt, force1)
-        particle2.update_2nd_position(dt, force2)
+        particle[i].update_2nd_position(dt, force[i])
 
         # Update force
         force1_new = lennard_jones_force(pair_sep, cut_off_radius, number_particles)
