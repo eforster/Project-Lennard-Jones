@@ -61,9 +61,10 @@ def periodic_boundary_conditions(particle, box_size, number_particles) :
         pbc = particle.position[i] * np.linalg.norm(box_size)
         return pbc
 
-def lennard_jones_force(particle_list, box_size, cut_off_radius) :
+def lennard_jones_force(particle_list, box_size, cut_off_radius, pair_sep) :
     """
 
+    :param pair_sep:
     :param particle_list:
     :param box_size:
     :param cut_off_radius:
@@ -128,6 +129,7 @@ def main():
     7.) Measures the energy inaccuracy of the simulation and prints it to the screen
 
     """
+
     with open(sys.argv[1], "r") as infile:
 
         # Part 1.) Reads in data file from the command line
@@ -158,7 +160,6 @@ def main():
                 numstep = int(line2[1])  # Reads in number of steps for
                 number_particles = int(line2[2])
 
-
     infile.close()
 
     # Part 2.) Specifies initial conditions
@@ -174,7 +175,8 @@ def main():
                 position = np.zeros(3),
                 velocity = np.zeros(3)
                 )
-            )
+        )
+
 
     rho = 1
     time = 0.0
@@ -184,58 +186,61 @@ def main():
     box_size = box_size[0]
     md.set_initial_velocities(temperature, particle_list)
 
-    for particle in particle_list:
-        separations_matrix = calculate_pair_separation(particle_list, number_particles)
-        print(separations_matrix)
-        lj_force = lennard_jones_force(particle_list, box_size, cut_off_radius)
-        print(lj_force)
-        lj_potential = lennard_jones_potential(particle_list, box_size)
-        print(lj_potential)
+    pair_sep = calculate_pair_separation(particle_list, box_size)
+    pair_sep = pair_sep[1]
+    print(pair_sep)
+
+    separations_matrix = calculate_pair_separation(particle_list, number_particles)
+
+    force = lennard_jones_force(particle_list, box_size, cut_off_radius, pair_sep)
 
     for particle in range(number_particles) :
-        outfile.write(particle.__str__())  # Formats output file being written
 
-    quit()
+        outfile.write(f"{particle.__str__()}\n")  # Formats output file being written
 
-    # Get initial force
-    force1 = lennard_jones_force(particle_list, box_size, cut_off_radius)
-    force2 = - force1
+    for particle in particle_list :
+
+        energy = lennard_jones_potential(particle_list, box_size) + particle.calculate_kinetic_energy()
 
     # Part 3.) Initialises data lists for plotting later
 
     time_list = [time]
-    position_list = [particle[i].position]
+    position_list = [pair_sep]
     energy_list = [energy]
 
     # Part 4.) Starts a time integration loop
 
     for i in range(numstep):
-        # Update particle position
-        particle[i].update_2nd_position(dt, force[i])
 
-        # Update force
-        force1_new = lennard_jones_force(pair_sep, cut_off_radius, number_particles)
-        force2_new = - force1_new
+        # Update particle
+        particle_list[i].update_2nd_position(dt, force[i])
+        separations = calculate_pair_separation(particle_list, box_size)
+        separations = separations[1]
+        new_position = periodic_boundary_conditions(particle, box_size, number_particles)
+        new_force = lennard_jones_force(particle_list, box_size, cut_off_radius, separations)
 
-        # Update particle velocity by averaging current and new forces
-        particle1.update_velocity(dt, 0.5 * (force1 + force1_new))
-        particle2.update_velocity(dt, 0.5 * (force2 + force2_new))
+        for particle in range(number_particles) :
+            # Update particle velocity by averaging current and new forces
+            particle_list[particle].update_velocity(dt, 0.5 * (force[particle] + new_force[particle]))
 
-        # Re-define force value
-        force1 = force1_new
-        force2 = force2_new
+        force = new_force
+        position = new_position
 
         # Increase time
         time += dt
 
         # Output particle information
-        energy = particle1.calculate_kinetic_energy() + particle2.calculate_kinetic_energy() + lennard_jones_potential(number_particles, pair_sep)
-        outfile.write("{0:f} {1:f} {2:12.8f}\n".format(time, p1_to_p2, energy))
+
+        for particle in particle_list:
+
+            energy = lennard_jones_potential(particle_list, box_size) + particle.calculate_kinetic_energy()
+
+        outfile.write(f"{particle.__str__()}\n")
 
         # Append information to data lists
         time_list.append(time)
-        pos1_list.append(particle1.position)
-        pos2_list.append(particle2.position)
+        position_list.append(position)
+
         energy_list.append(energy)
 
     # Post-simulation:
@@ -247,8 +252,7 @@ def main():
     pyplot.title('Position vs Time')
     pyplot.xlabel('Time : ')
     pyplot.ylabel('Position : ')
-    pyplot.plot(time_list, pos1_list)
-    pyplot.plot(time_list, pos2_list)
+    pyplot.plot(time_list, position_list)
     pyplot.show()
 
     # Part 6.) Plots particle energy to screen
@@ -261,8 +265,8 @@ def main():
     pyplot.show()
 
     # Part 7.) Measures the energy inaccuracy of the simulation and prints it to the screen
-
-    initial_energy = particle1.calculate_kinetic_energy() + particle2.calculate_kinetic_energy() + lennard_jones_potential(number_particles, pair_sep)
+    """
+    initial_energy = particle[0].calculate_kinetic_energy() + particle[0]lennard_jones_potential(particle_list, box_size)
     max_energy = max(energy_list)
     min_energy = min(energy_list)
 
@@ -271,7 +275,7 @@ def main():
 
     print("Energy inaccuracy : +/-", energy_inaccuracy, "eV ")
 
-
+    """
 # Execute main method, but only when directly invoked
 if __name__ == "__main__":
     main()

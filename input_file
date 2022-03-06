@@ -1,2 +1,2 @@
-# dt Numstep N
+# dt numstep number_particles
 0.01 1000 2
