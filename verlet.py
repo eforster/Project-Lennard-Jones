@@ -33,7 +33,6 @@ def calculate_pair_separation(particle_list, box_size):
 
     N = len(particle_list)
     separations_matrix = np.zeros((N, N, 3))
-    pair_sep = float
 
     for i in range(N) :
         for j in range(i + 1, N) :
@@ -43,7 +42,7 @@ def calculate_pair_separation(particle_list, box_size):
             separations_matrix[i, j] = separation
             separations_matrix[j, i] = - separation
 
-            pair_sep = np.linalg.norm(separations_matrix[i, j])
+            pair_sep = np.linalg.norm(separations_matrix, axis = 2)
 
     return separations_matrix, pair_sep
 
@@ -72,17 +71,18 @@ def lennard_jones_force(particle_list, box_size, cut_off_radius, pair_sep) :
     """
 
     N = len(particle_list)
-    lj_force = float
     pair_sep = calculate_pair_separation(particle_list, box_size)
     pair_sep = pair_sep[1]
+    modulus_pair_sep = np.linalg.norm(pair_sep)
+    lj_force = np.zeros((N, N, 3))
 
-    if pair_sep < cut_off_radius :
+    if modulus_pair_sep < cut_off_radius :
         for j in range(N):
-            lj_force = - 48 * ((pair_sep ** - 14) - (1 / 2) * (pair_sep ** - 8)) * pair_sep
+            lj_force = - 48 * ((modulus_pair_sep ** - 14) - (1 / 2) * (modulus_pair_sep ** - 8)) * pair_sep
 
-    elif pair_sep == cut_off_radius :
+    elif modulus_pair_sep == cut_off_radius :
 
-        lj_force = - 48 * ((pair_sep ** - 14) - (1 / 2) * (pair_sep ** - 8)) * cut_off_radius
+        lj_force = - 48 * ((modulus_pair_sep ** - 14) - (1 / 2) * (modulus_pair_sep ** - 8)) * cut_off_radius
 
     else :
         for j in range(N) :
@@ -91,11 +91,13 @@ def lennard_jones_force(particle_list, box_size, cut_off_radius, pair_sep) :
     return lj_force
 
 
-def lennard_jones_potential(particle_list, box_size) :
+def lennard_jones_potential(particle_list, box_size, cut_off_radius, pair_sep) :
 
     """
 
 
+    :param pair_sep:
+    :param cut_off_radius:
     :param particle_list:
     :param box_size:
 
@@ -103,17 +105,27 @@ def lennard_jones_potential(particle_list, box_size) :
     """
 
     N = len(particle_list)
-    lj_potential = float
     pair_sep = calculate_pair_separation(particle_list, box_size)
     pair_sep = pair_sep[1]
+    modulus_pair_sep = np.linalg.norm(pair_sep)
+    lj_potential = float
 
-    for i in range(N) :
-        for j in range(i + 1, N) :
+    if modulus_pair_sep < cut_off_radius :
 
-            lj_potential = 4 * ((pair_sep ** - 12) - (pair_sep ** - 6))
+        for i in range(N):
+            for j in range(i + 1, N):
+                lj_potential = 4 * ((modulus_pair_sep ** - 12) - (modulus_pair_sep ** - 6))
+
+    elif modulus_pair_sep == cut_off_radius :
+
+        lj_potential = 4 * ((modulus_pair_sep ** - 12) - (modulus_pair_sep ** - 6))
+
+    else :
+
+        for j in range(N) :
+            lj_potential = 0
 
     return lj_potential
-
 
 # Begin main code
 def main():
@@ -200,7 +212,7 @@ def main():
 
     for particle in particle_list :
 
-        energy = lennard_jones_potential(particle_list, box_size) + particle.calculate_kinetic_energy()
+        energy = lennard_jones_potential(particle_list, box_size, cut_off_radius, pair_sep) + particle.calculate_kinetic_energy()
 
     # Part 3.) Initialises data lists for plotting later
 
@@ -233,7 +245,7 @@ def main():
 
         for particle in particle_list:
 
-            energy = lennard_jones_potential(particle_list, box_size) + particle.calculate_kinetic_energy()
+            energy = lennard_jones_potential(particle_list, box_size, cut_off_radius, pair_sep) + particle.calculate_kinetic_energy()
 
         outfile.write(f"{particle.__str__()}\n")
 
@@ -266,7 +278,7 @@ def main():
 
     # Part 7.) Measures the energy inaccuracy of the simulation and prints it to the screen
     """
-    initial_energy = particle[0].calculate_kinetic_energy() + particle[0]lennard_jones_potential(particle_list, box_size)
+    initial_energy = particle.calculate_kinetic_energy() + lennard_jones_potential(particle_list, box_size)
     max_energy = max(energy_list)
     min_energy = min(energy_list)
 
