@@ -76,20 +76,18 @@ def lennard_jones_force(particle_list, box_size, cut_off_radius, pair_sep) :
     modulus_pair_sep = np.linalg.norm(pair_sep)
     lj_force = np.zeros((N, N, 3))
 
-    if modulus_pair_sep < cut_off_radius :
-        for j in range(N):
-            lj_force = - 48 * ((modulus_pair_sep ** - 14) - (1 / 2) * (modulus_pair_sep ** - 8)) * pair_sep
+    for i in range(N) :
+        for j in range(i) :
 
-    elif modulus_pair_sep == cut_off_radius :
+            if modulus_pair_sep > cut_off_radius or modulus_pair_sep == 0 :
 
-        lj_force = - 48 * ((modulus_pair_sep ** - 14) - (1 / 2) * (modulus_pair_sep ** - 8)) * cut_off_radius
+                lj_force[i, j] = 0
 
-    else :
-        for j in range(N) :
-            lj_force = 0
+            else :
+                lj_force[i, j] = 48 * (modulus_pair_sep**(-14) - (0.5 * modulus_pair_sep ** (-8))) * pair_sep[i, j]
+                lj_force[j, i] = - lj_force[i, j]
 
     return lj_force
-
 
 def lennard_jones_potential(particle_list, box_size, cut_off_radius, pair_sep) :
 
