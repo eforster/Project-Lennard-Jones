@@ -57,9 +57,8 @@ class Particle3D(object) :
 
         self.label = label
         self.mass = mass
-        self.position = position
-        self.velocity = velocity
-
+        self.position = np.array(position)
+        self.velocity = np.array(velocity)
 
     def __str__(self) :
 
@@ -71,6 +70,7 @@ class Particle3D(object) :
         :return xyz_string: (label, x, y, z)
         """
 
+        print('self.position is ', self.position, self.position.shape)
         xyz_string = f"{self.label} {self.position[0]} {self.position[1]} {self.position[2]}\n"
         return xyz_string
 
@@ -114,8 +114,8 @@ class Particle3D(object) :
         :param dt: float, time-step
         :param force: float, force on particle
         """
-
-        self.position = self.position + dt * self.velocity + (dt ** 2) * (force / (2 * self.mass))
+        # self.position = self.position + dt * self.velocity + (dt ** 2) * (force / (2 * self.mass))
+        self.position += dt * self.velocity + (dt ** 2) * (force / (2 * self.mass))
 
     def update_velocity(self, dt, force) :
 
