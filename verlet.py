@@ -214,7 +214,7 @@ def main():
 
     # Part 4.) Starts a time integration loop
 
-    for i in range(N):
+    for i in range(numstep):
 
         particle_list[i].update_velocity(dt, force)
 
