@@ -217,13 +217,14 @@ def main():
     for i in range(numstep):
 
         particle_list[i].update_velocity(dt, force)
+        new_force = lennard_jones_force(particle_list, box_size, cut_off_radius)
 
         for particle in particle_list :
 
             position_for_pbc = particle_list[i].update_2nd_position(dt, force[i])
             periodic_boundary_conditions(particle, box_size, number_particles)
 
-            particle_list[particle].update_velocity(dt, 0.5 * (force[particle] + force[particle]))
+            particle_list[i].update_velocity(dt, 0.5 * (force[i] + new_force[i]))
 
             energy = lennard_jones_potential(particle_list, box_size, cut_off_radius) + particle.calculate_kinetic_energy()
 

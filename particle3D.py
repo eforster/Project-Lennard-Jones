@@ -114,7 +114,7 @@ class Particle3D(object) :
         :param dt: float, time-step
         :param force: float, force on particle
         """
-        # self.position = self.position + dt * self.velocity + (dt ** 2) * (force / (2 * self.mass))
+        #self.position = self.position + dt * self.velocity + (dt ** 2) * (force / (2 * self.mass))
         self.position += dt * self.velocity + (dt ** 2) * (force / (2 * self.mass))
 
     def update_velocity(self, dt, force) :
