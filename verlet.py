@@ -10,7 +10,7 @@ import matplotlib.pyplot as pyplot
 from particle3D import Particle3D
 import mdutilities as md
 
-def mirror_image_convention(particle, different_particle, box_size) :
+def minimum_image_convention(particle, different_particle, box_size) :
     """
 
     :param particle:
@@ -19,7 +19,7 @@ def mirror_image_convention(particle, different_particle, box_size) :
     :return:
     """
 
-    mic = ((particle.position - different_particle.position + box_size / 2) * np.linalg.norm(box_size)) - (box_size / 2)
+    mic = np.mod((particle.position - different_particle.position + box_size / 2), box_size) - (box_size / 2)
     modulus_mic = np.linalg.norm(mic)
     return modulus_mic
 
@@ -37,7 +37,7 @@ def calculate_pair_separation(particle_list, box_size):
     for i in range(N) :
         for j in range(i + 1, N) :
 
-            separation = mirror_image_convention(particle_list[i], particle_list[j], box_size)
+            separation = minimum_image_convention(particle_list[i], particle_list[j], box_size)
 
             separations_matrix[i, j] = separation
             separations_matrix[j, i] = - separation
@@ -54,13 +54,13 @@ def periodic_boundary_conditions(particle, box_size, number_particles) :
     :return:
     """
 
-    pbc = particle.position * np.linalg.norm(box_size)
+    pbc = np.mod(particle.position, box_size)
     return pbc
 
 def lennard_jones_force(particle_list, box_size, cut_off_radius) :
     """
 
-    :param pair_sep:
+    :param sep_matrix:
     :param particle_list:
     :param box_size:
     :param cut_off_radius:
@@ -70,22 +70,24 @@ def lennard_jones_force(particle_list, box_size, cut_off_radius) :
     N = len(particle_list)
     sep_matrix = calculate_pair_separation(particle_list, box_size)
     
-    lj_force = np.zeros((N, N, 3))
+    lj_force_matrix = np.zeros((N, N, 3))
 
     for i in range(N) :
-        for j in range(i) :
+        for j in range(i + 1, N) :
 
             modulus_sep_matrix = np.linalg.norm(sep_matrix[i, j])
 
             if modulus_sep_matrix > cut_off_radius or modulus_sep_matrix == 0 :
 
-                lj_force[i, j] = 0
+                lj_force_matrix[i, j] = 0
 
             else :
-                lj_force[i, j] = 48 * (modulus_sep_matrix**(-14) - (0.5 * modulus_sep_matrix ** (-8))) * sep_matrix[i, j]
-                lj_force[j, i] = - lj_force[i, j]
+                lj_force_matrix[i, j] = 48 * (modulus_sep_matrix**(-14) - (0.5 * modulus_sep_matrix ** (-8))) * sep_matrix[i, j]
+                lj_force_matrix[j, i] = - lj_force_matrix[i, j]
 
-    return lj_force
+    print('lj force: ', lj_force_matrix, lj_force_matrix.shape)
+    return lj_force_matrix
+    
 
 def lennard_jones_potential(particle_list, box_size, cut_off_radius) :
 
@@ -169,78 +171,57 @@ def main():
     # Part 2.) Specifies initial conditions
 
     cut_off_radius = 3.5
-    particle_list = []
-
-    for particle in range(number_particles) :
-        particle_list.append(
-            Particle3D(
-                label = f"n_{particle}",
-                mass = 1,
-                position = np.zeros(3),
-                velocity = np.zeros(3)
-                )
-        )
-
-    rho = 1
     time = 0.0
-    temperature = 1
+    box_size = 3
 
-    box_size, full_lattice = md.set_initial_positions(rho, particle_list)
-    box_size = box_size[0]
-    md.set_initial_velocities(temperature, particle_list)
+    p1 = Particle3D('Ar', 1, [1.222, 0, 0], [0.01, 0, 0])
+    p2 = Particle3D('Ar', 1, [0, 0, 0], [-0.01, 0, 0])
 
-    sep_matrix = calculate_pair_separation(particle_list, box_size)
+    particle_list = [p1, p2]
     N = len(particle_list)
-
-    for r in range(N):
-        for j in range(r + 1, N):
-
-            modulus_sep_matrix = np.linalg.norm(sep_matrix[r, j])
-
-
-    force = lennard_jones_force(particle_list, box_size, cut_off_radius)
-
+    
     for particle in particle_list :
 
-        energy = lennard_jones_potential(particle_list, box_size, cut_off_radius) + particle.calculate_kinetic_energy()
+        # particle_list += [Particle3D(str(particle), 1, np.zeros(3), np.zeros(3))
+        outfile.write(f"{str(particle)}\n")
+        separation_matrix = calculate_pair_separation(particle_list, box_size)
+        energy = particle.calculate_kinetic_energy() + lennard_jones_potential(particle_list, box_size, cut_off_radius)
+        force_matrix = lennard_jones_force(particle_list, box_size, cut_off_radius)
+        position_list = []
 
-        outfile.write(f"{str(particle)}\n")  # Formats output file being written
+    # box_size, full_lattice = md.set_initial_positions(rho, particle_list)
+    # box_size = box_size[0]
+    # md.set_initial_velocities(temperature, particle_list)
 
-    # Part 3.) Initialises data lists for plotting later
-
+    
     time_list = [time]
-    position_list = [modulus_sep_matrix]
     energy_list = [energy]
 
-    # Part 4.) Starts a time integration loop
+    for i in range(numstep) :
 
-    for i in range(numstep):
+        for j in range(i + 1, N) :
 
-        particle_list[i].update_velocity(dt, force)
-        new_force = lennard_jones_force(particle_list, box_size, cut_off_radius)
+            position_list.append(np.linalg.norm(separation_matrix[i, j]))
 
-        for particle in particle_list :
+            particle_list[j].update_2nd_position(dt, force_matrix[j])
+            periodic_boundary_conditions(particle_list[j], box_size, number_particles)
 
-            position_for_pbc = particle_list[i].update_2nd_position(dt, force[i])
-            periodic_boundary_conditions(particle, box_size, number_particles)
+            new_force_matrix = lennard_jones_force(particle_list, box_size, cut_off_radius)
+            particle_list[j].update_velocity(dt, 0.5 * (force_matrix[j] + new_force_matrix[j]))
 
-            particle_list[i].update_velocity(dt, 0.5 * (force[i] + new_force[i]))
+            force_matrix[j] = new_force_matrix[j]
 
-            energy = lennard_jones_potential(particle_list, box_size, cut_off_radius) + particle.calculate_kinetic_energy()
+            time += dt
 
-            outfile.write(f"{str(particle)}\n")
+            energy = particle_list.calculate_kinetic_energy() + particle_list.lennard_jones_potential(particle_list, box_size, cut_off_radius)
 
-        # Increase time
-        time += dt
+            energy_list.append(energy)
+            time_list.append(time)
+            position_list.append(np.linalg.norm(separation_matrix[i, j]))
 
-        # Output particle information
-
-        # Append information to data lists
-        time_list.append(time)
-        position_list.append(modulus_sep_matrix)
-
-        energy_list.append(energy)
-
+            for particle in particle_list :
+                outfile.write(f"{str(particle)}\n")
+     
     # Post-simulation:
     # Close output file
     outfile.close()
