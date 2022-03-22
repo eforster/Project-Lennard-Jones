@@ -70,7 +70,7 @@ class Particle3D(object) :
         :return xyz_string: (label, x, y, z)
         """
 
-        print('self.position is ', self.position, self.position.shape)
+        #print('self.position is ', self.position, self.position.shape)
         xyz_string = f"{self.label} {self.position[0]} {self.position[1]} {self.position[2]}\n"
         return xyz_string
 
@@ -115,7 +115,12 @@ class Particle3D(object) :
         :param force: float, force on particle
         """
 
-        self.position += dt * self.velocity + (dt ** 2) * (force / (2 * self.mass))
+        #print(f"position{self.position}", self.position.shape)
+        #print(f"velocity{self.velocity}", self.velocity.shape)
+        #print(f"force{force}", force.shape)
+        # self.position += dt * self.velocity + (dt ** 2) * (force / (2 * self.mass))
+        self.position = self.position + dt * self.velocity + (dt ** 2) * (force / (2 * self.mass))
+
 
     def update_velocity(self, dt, force) :
 

@@ -20,8 +20,7 @@ def minimum_image_convention(particle, different_particle, box_size) :
     """
 
     mic = np.mod((particle.position - different_particle.position + box_size / 2), box_size) - (box_size / 2)
-    modulus_mic = np.linalg.norm(mic)
-    return modulus_mic
+    return mic
 
 def calculate_pair_separation(particle_list, box_size):
     """
@@ -37,14 +36,17 @@ def calculate_pair_separation(particle_list, box_size):
     for i in range(N) :
         for j in range(i + 1, N) :
 
+            
             separation = minimum_image_convention(particle_list[i], particle_list[j], box_size)
+
+            print(f"separation{separation}")
 
             separations_matrix[i, j] = separation
             separations_matrix[j, i] = - separation
 
     return separations_matrix
 
-def periodic_boundary_conditions(particle, box_size, number_particles) :
+def periodic_boundary_conditions(particle, box_size) :
     """
 
     :param particle:
@@ -85,7 +87,6 @@ def lennard_jones_force(particle_list, box_size, cut_off_radius) :
                 lj_force_matrix[i, j] = 48 * (modulus_sep_matrix**(-14) - (0.5 * modulus_sep_matrix ** (-8))) * sep_matrix[i, j]
                 lj_force_matrix[j, i] = - lj_force_matrix[i, j]
 
-    print('lj force: ', lj_force_matrix, lj_force_matrix.shape)
     return lj_force_matrix
     
 
@@ -104,7 +105,7 @@ def lennard_jones_potential(particle_list, box_size, cut_off_radius) :
 
     N = len(particle_list)
     sep_matrix = calculate_pair_separation(particle_list, box_size)
-    lj_potential = float
+    lj_potential = 0
 
     for i in range(N):
         for j in range(i + 1, N):
@@ -113,11 +114,11 @@ def lennard_jones_potential(particle_list, box_size, cut_off_radius) :
 
             if modulus_sep_matrix > cut_off_radius :
 
-                lj_potential = 4 * ((cut_off_radius ** - 12) - (cut_off_radius ** - 6))
+                lj_potential = 4 * ((cut_off_radius ** (- 12)) - (cut_off_radius ** (- 6)))
 
             else :
 
-                lj_potential = 4 * ((modulus_sep_matrix ** - 12) - (modulus_sep_matrix ** - 6))
+                lj_potential = 4 * ((modulus_sep_matrix ** (- 12)) - (modulus_sep_matrix ** (- 6)))
 
     return lj_potential
 
@@ -173,6 +174,7 @@ def main():
     cut_off_radius = 3.5
     time = 0.0
     box_size = 3
+    temperature = 0.1
 
     p1 = Particle3D('Ar', 1, [1.222, 0, 0], [0.01, 0, 0])
     p2 = Particle3D('Ar', 1, [0, 0, 0], [-0.01, 0, 0])
@@ -180,60 +182,56 @@ def main():
     particle_list = [p1, p2]
     N = len(particle_list)
     
-    for particle in particle_list :
+    for n in range(number_particles) :
 
         # particle_list += [Particle3D(str(particle), 1, np.zeros(3), np.zeros(3))
-        outfile.write(f"{str(particle)}\n")
-        separation_matrix = calculate_pair_separation(particle_list, box_size)
-        energy = particle.calculate_kinetic_energy() + lennard_jones_potential(particle_list, box_size, cut_off_radius)
+        outfile.write(f"{str(particle_list[n])}\n")
+        total_energy = particle_list[n].calculate_kinetic_energy() + lennard_jones_potential(particle_list, box_size, cut_off_radius)
         force_matrix = lennard_jones_force(particle_list, box_size, cut_off_radius)
-        position_list = []
 
     # box_size, full_lattice = md.set_initial_positions(rho, particle_list)
     # box_size = box_size[0]
     # md.set_initial_velocities(temperature, particle_list)
 
-    
+
     time_list = [time]
-    energy_list = [energy]
+    energy_list = [total_energy]
 
     for i in range(numstep) :
 
-        for j in range(i + 1, N) :
+        separation_matrix = calculate_pair_separation(particle_list, box_size)
 
-            position_list.append(np.linalg.norm(separation_matrix[i, j]))
+        for n in range(number_particles) :
 
-            particle_list[j].update_2nd_position(dt, force_matrix[j])
-            periodic_boundary_conditions(particle_list[j], box_size, number_particles)
+            print(f"force{np.sum(force_matrix[:, n], axis=0)}")
+            particle_list[n].update_2nd_position(dt, np.sum(force_matrix[:, n], axis=0))
+            periodic_boundary_conditions(particle_list[n], box_size)
 
             new_force_matrix = lennard_jones_force(particle_list, box_size, cut_off_radius)
-            particle_list[j].update_velocity(dt, 0.5 * (force_matrix[j] + new_force_matrix[j]))
+            particle_list[n].update_velocity(dt, 0.5 * ((np.sum(force_matrix[:, n], axis = 0)) + (np.sum(new_force_matrix[:, n], axis = 0))))
 
-            force_matrix[j] = new_force_matrix[j]
+            force_matrix = new_force_matrix 
 
             time += dt
 
-            energy = particle_list.calculate_kinetic_energy() + particle_list.lennard_jones_potential(particle_list, box_size, cut_off_radius)
+            total_energy = particle_list[n].calculate_kinetic_energy() + lennard_jones_potential(particle_list, box_size, cut_off_radius)
 
-            energy_list.append(energy)
+            energy_list.append(total_energy)
             time_list.append(time)
-            position_list.append(np.linalg.norm(separation_matrix[i, j]))
-
-            for particle in particle_list :
-                outfile.write(f"{str(particle)}\n")
+            outfile.write(f"{str(particle_list[n])}\n")
      
     # Post-simulation:
     # Close output file
     outfile.close()
 
     # Part 5.) Plots particle trajectory to screen
-
+    """
     pyplot.title('Position vs Time')
     pyplot.xlabel('Time : ')
-    pyplot.ylabel('Position : ')
-    pyplot.plot(time_list, position_list)
+    pyplot.ylabel('Separation : ')
+    pyplot.plot(time_list, separation_list)
     pyplot.show()
-
+    """
     # Part 6.) Plots particle energy to screen
 
     # Plot particle energy to screen
