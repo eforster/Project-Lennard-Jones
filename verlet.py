@@ -39,7 +39,7 @@ def calculate_pair_separation(particle_list, box_size):
             
             separation = minimum_image_convention(particle_list[i], particle_list[j], box_size)
 
-            print(f"separation{separation}")
+            #print(f"separation{separation}")
 
             separations_matrix[i, j] = separation
             separations_matrix[j, i] = - separation
@@ -203,7 +203,7 @@ def main():
 
         for n in range(number_particles) :
 
-            print(f"force{np.sum(force_matrix[:, n], axis=0)}")
+            #print(f"force{np.sum(force_matrix[:, n], axis=0)}")
             particle_list[n].update_2nd_position(dt, np.sum(force_matrix[:, n], axis=0))
             periodic_boundary_conditions(particle_list[n], box_size)
 
