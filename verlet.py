@@ -115,7 +115,12 @@ def lennard_jones_potential(particle_list, box_size, cut_off_radius, sep_matrix)
 
             if modulus_sep_matrix > cut_off_radius :
 
-                lj_potential += 4 * ((modulus_sep_matrix ** (- 12)) - (modulus_sep_matrix ** (- 6)))
+                lj_potential = 4 * ((cut_off_radius ** (- 12)) - (cut_off_radius ** (- 6)))
+
+            else :
+
+                lj_potential = 4 * ((modulus_sep_matrix ** (- 12)) - (modulus_sep_matrix ** (- 6)))
+
 
     return lj_potential
 
