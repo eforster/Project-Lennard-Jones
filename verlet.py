@@ -162,12 +162,29 @@ def main():
 
             # Helpful error message if there is not 2 parameters in line 2
             if len(line2) != 3:
-                print("Wrong number of arguments in line 2 of input data file, i.e. simulation parameters. ")
+                print("Wrong number of arguments in line 2 of input data file, i.e. dt, numstep and number of particles. ")
 
             else:
                 dt = float(line2[0])  # Reads in time-step for simulation
                 numstep = int(line2[1])  # Reads in number of steps for simulation
                 number_particles = int(line2[2])
+
+            line3 = infile.readline()
+            line4 = infile.readline()
+            line4 = line4.split()
+
+            if len(line4) != 2 :
+                print("Wrong number of arguments in line 2 of input data file, i.e. temperature and rho.")
+
+            else :
+                temperature = float(line4[0])
+                rho = float(line4[1])
+
+            line5 = infile.readline()
+            line6 = infile.readline()
+            line6 = line6.split()
+
+            outfile_name = line6[0]
 
     infile.close()
 
@@ -176,8 +193,8 @@ def main():
     cut_off_radius = 3.5
     time = 0.0
     # box_size = 3
-    temperature = 0.1
-    rho = 1
+    # temperature = 0.1
+    # rho = 1
 
     # p1 = Particle3D('Ar', 1, [1.222, 0, 0], [1, 0, 0])
     # p2 = Particle3D('Ar', 1, [0, 0, 0], [1, 0, 0])
@@ -211,31 +228,37 @@ def main():
 
     for i in range(numstep) :
 
-
-
         for n in range(len(particle_list)) :
 
             # print(f"force{np.sum(force_matrix[:, n], axis=0)}")
 
             particle_list[n].update_2nd_position(dt, np.sum(force_matrix[:, n], axis = 0) * (-1))
             particle_list[n].position = periodic_boundary_conditions(particle_list[n], box_size)
+            outfile.write(f"{str(particle_list[n])}")
+
+        for j in range(len(particle_list)) :
 
             new_force_matrix = lennard_jones_force(particle_list, box_size, cut_off_radius)
-            particle_list[n].update_velocity(dt, (-0.5) * ((np.sum(force_matrix[:, n], axis = 0)) + (np.sum(new_force_matrix[:, n], axis = 0))))
 
-            force_matrix = new_force_matrix 
+        for k in range(len(particle_list)) :
+            particle_list[k].update_velocity(dt, (-0.5) * ((np.sum(force_matrix[:, k], axis = 0)) + (np.sum(new_force_matrix[:, k], axis = 0))))
 
-            time += dt
 
-            kinetic_energy = particle_list[n].calculate_kinetic_energy()
-            potential_energy = lennard_jones_potential(particle_list, box_size, cut_off_radius, separation_matrix[n])
+        force_matrix = new_force_matrix
+
+        time += dt
+
+        for l in range(len(particle_list)) :
+
+            kinetic_energy = particle_list[l].calculate_kinetic_energy()
+            potential_energy = lennard_jones_potential(particle_list, box_size, cut_off_radius, separation_matrix[l])
             total_energy = kinetic_energy + potential_energy
 
-            kinetic_energy_list.append(kinetic_energy)
-            potential_energy_list.append(potential_energy)
-            total_energy_list.append(total_energy)
-            time_list.append(time)
-            outfile.write(f"{str(particle_list[n])}")
+        kinetic_energy_list.append(kinetic_energy)
+        potential_energy_list.append(potential_energy)
+        total_energy_list.append(total_energy)
+        time_list.append(time)
+
      
     # Post-simulation:
     # Close output file
