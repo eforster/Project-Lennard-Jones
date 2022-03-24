@@ -35,11 +35,8 @@ def calculate_pair_separation(particle_list, box_size):
 
     for i in range(N) :
         for j in range(i + 1, N) :
-
             
             separation = minimum_image_convention(particle_list[i], particle_list[j], box_size)
-
-            #print(f"separation{separation}")
 
             separations_matrix[i, j] = separation
             separations_matrix[j, i] = - separation
@@ -84,7 +81,7 @@ def lennard_jones_force(particle_list, box_size, cut_off_radius) :
                 lj_force_matrix[i, j] = 0
 
             else :
-                lj_force_matrix[i, j] = 48 * (modulus_sep_matrix**(-14) - (0.5 * modulus_sep_matrix ** (-8))) * sep_matrix[i, j]
+                lj_force_matrix[i, j] = 48 * (modulus_sep_matrix ** (-14) - 0.5 * modulus_sep_matrix ** (-8)) * sep_matrix[i, j]
                 lj_force_matrix[j, i] = - lj_force_matrix[i, j]
 
     return lj_force_matrix
@@ -115,11 +112,11 @@ def lennard_jones_potential(particle_list, box_size, cut_off_radius, sep_matrix)
 
             if modulus_sep_matrix > cut_off_radius :
 
-                lj_potential = 4 * ((cut_off_radius ** (- 12)) - (cut_off_radius ** (- 6)))
+                lj_potential += 4 * (cut_off_radius ** (- 12) - cut_off_radius ** (- 6))
 
             else :
 
-                lj_potential = 4 * ((modulus_sep_matrix ** (- 12)) - (modulus_sep_matrix ** (- 6)))
+                lj_potential += 4 * (modulus_sep_matrix ** (- 12) - modulus_sep_matrix ** (- 6))
 
 
     return lj_potential
@@ -192,14 +189,7 @@ def main():
 
     cut_off_radius = 3.5
     time = 0.0
-    # box_size = 3
-    # temperature = 0.1
-    # rho = 1
 
-    # p1 = Particle3D('Ar', 1, [1.222, 0, 0], [1, 0, 0])
-    # p2 = Particle3D('Ar', 1, [0, 0, 0], [1, 0, 0])
-
-    # particle_list = [p1, p2]
     particle_list = []
     N = len(particle_list)
     outfile.write(f"{str(number_particles)}\n")
@@ -216,7 +206,7 @@ def main():
     for n in range(number_particles) :
 
         outfile.write(f"{str(particle_list[n])}")
-        kinetic_energy = particle_list[n].calculate_kinetic_energy()
+        kinetic_energy = particle_list[n].calculate_system_kinetic_energy(particle_list)
         potential_energy = lennard_jones_potential(particle_list, box_size, cut_off_radius, separation_matrix[n])
         force_matrix = lennard_jones_force(particle_list, box_size, cut_off_radius)
         total_energy = kinetic_energy + potential_energy
@@ -230,8 +220,6 @@ def main():
 
         for n in range(len(particle_list)) :
 
-            # print(f"force{np.sum(force_matrix[:, n], axis=0)}")
-
             particle_list[n].update_2nd_position(dt, np.sum(force_matrix[:, n], axis = 0) * (-1))
             particle_list[n].position = periodic_boundary_conditions(particle_list[n], box_size)
             outfile.write(f"{str(particle_list[n])}")
@@ -241,17 +229,17 @@ def main():
             new_force_matrix = lennard_jones_force(particle_list, box_size, cut_off_radius)
 
         for k in range(len(particle_list)) :
-            particle_list[k].update_velocity(dt, (-0.5) * ((np.sum(force_matrix[:, k], axis = 0)) + (np.sum(new_force_matrix[:, k], axis = 0))))
 
+            particle_list[k].update_velocity(dt, (-0.5) * ((np.sum(force_matrix[:, k], axis = 0)) + (np.sum(new_force_matrix[:, k], axis = 0))))
 
         force_matrix = new_force_matrix
 
         time += dt
 
-        for l in range(len(particle_list)) :
+        for m in range(len(particle_list)) :
 
-            kinetic_energy = particle_list[l].calculate_kinetic_energy()
-            potential_energy = lennard_jones_potential(particle_list, box_size, cut_off_radius, separation_matrix[l])
+            kinetic_energy = particle_list[m].calculate_system_kinetic_energy(particle_list)
+            potential_energy = lennard_jones_potential(particle_list, box_size, cut_off_radius, separation_matrix[m])
             total_energy = kinetic_energy + potential_energy
 
         kinetic_energy_list.append(kinetic_energy)
@@ -264,14 +252,6 @@ def main():
     # Close output file
     outfile.close()
 
-    # Part 5.) Plots particle trajectory to screen
-    """
-    pyplot.title('Position vs Time')
-    pyplot.xlabel('Time : ')
-    pyplot.ylabel('Separation : ')
-    pyplot.plot(time_list, separation_list)
-    pyplot.show()
-    """
     # Part 6.) Plots particle energy to screen
 
     # Plot particle energy to screen
@@ -295,17 +275,21 @@ def main():
 
 
     # Part 7.) Measures the energy inaccuracy of the simulation and prints it to the screen
-    """
-    initial_energy = particle.calculate_kinetic_energy() + lennard_jones_potential(particle_list, box_size)
-    max_energy = max(energy_list)
-    min_energy = min(energy_list)
+
+
+    initial_energy_k = kinetic_energy_list[0]
+    initial_energy_p = potential_energy_list[0]
+
+    initial_energy = initial_energy_p + initial_energy_k
+
+    max_energy = max(total_energy_list)
+    min_energy = min(total_energy_list)
 
     delta_energy = max_energy - min_energy
     energy_inaccuracy = delta_energy / initial_energy
 
-    print("Energy inaccuracy : +/-", energy_inaccuracy, "eV ")
+    print("Energy inaccuracy : +/-", energy_inaccuracy)
 
-    """
 # Execute main method, but only when directly invoked
 if __name__ == "__main__":
     main()
