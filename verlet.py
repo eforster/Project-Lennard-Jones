@@ -105,8 +105,8 @@ def lennard_jones_potential(particle_list, box_size, cut_off_radius, sep_matrix)
     sep_matrix = calculate_pair_separation(particle_list, box_size)
     lj_potential = 0
 
-    for i in range(N):
-        for j in range(i + 1, N):
+    for i in range (N) :
+        for j in range (i + 1, N) :
             
             modulus_sep_matrix = np.linalg.norm(sep_matrix[i, j])
 
@@ -122,7 +122,7 @@ def lennard_jones_potential(particle_list, box_size, cut_off_radius, sep_matrix)
     return lj_potential
 
 # Begin main code
-def main():
+def main() :
     """
     The main method carries out the simulation in a few parts:
 
@@ -136,22 +136,19 @@ def main():
 
     """
 
-    with open(sys.argv[1], "r") as infile:
+    with open(sys.argv[1], "r") as infile :
 
         # Part 1.) Reads in data file from the command line
 
         # Read name of files from command line which needs 3 parts
-        if len(sys.argv) != 3:
+        if len(sys.argv) != 2 :
 
             # Helpful error message if the format is incorrect
             print("Wrong number of arguments.")
-            print("Usage: " + sys.argv[0] + "<input file>" + "<output file>")
+            print("Usage: " + sys.argv[0] + "<input file>")
             quit()
-        else:
-            outfile_name = sys.argv[2]
 
-            # Open output file
-            outfile = open(outfile_name, "w")
+        else :
 
             line1 = infile.readline()  # Processes line 1 of input file
             line2 = infile.readline()  # Processes line 2 of input file
@@ -181,8 +178,22 @@ def main():
             line6 = infile.readline()
             line6 = line6.split()
 
-            outfile_name = line6[0]
+            if len(line6) != 4 :
 
+                print("Wrong number of arguments in line 6 of input data file, i.e. trajectory file, energy file, msd file and rdf file. ")
+
+            else :
+
+                xyz_trajectory = line6[0]
+                energies_file = line6[1]
+                msd_file = line6[2]
+
+                # Open output file
+                outfile1 = open(xyz_trajectory, "w")
+                outfile2 = open(energies_file, "w")
+                outfile3 = open(msd_file, "w")
+
+            
     infile.close()
 
     # Part 2.) Specifies initial conditions
@@ -192,7 +203,7 @@ def main():
 
     particle_list = []
     N = len(particle_list)
-    outfile.write(f"{str(number_particles)}\n")
+    outfile1.write(f"{str(number_particles)}\n")
 
     for particle in range(number_particles) :
 
@@ -205,7 +216,7 @@ def main():
     
     for n in range(number_particles) :
 
-        outfile.write(f"{str(particle_list[n])}")
+        outfile1.write(f"{str(particle_list[n])}")
         kinetic_energy = particle_list[n].calculate_system_kinetic_energy(particle_list)
         potential_energy = lennard_jones_potential(particle_list, box_size, cut_off_radius, separation_matrix[n])
         force_matrix = lennard_jones_force(particle_list, box_size, cut_off_radius)
@@ -222,7 +233,7 @@ def main():
 
             particle_list[n].update_2nd_position(dt, np.sum(force_matrix[:, n], axis = 0) * (-1))
             particle_list[n].position = periodic_boundary_conditions(particle_list[n], box_size)
-            outfile.write(f"{str(particle_list[n])}")
+            outfile1.write(f"{str(particle_list[n])}")
 
         for j in range(len(particle_list)) :
 
@@ -250,7 +261,9 @@ def main():
      
     # Post-simulation:
     # Close output file
-    outfile.close()
+    outfile1.close()
+    outfile2.close()
+    outfile3.close()
 
     # Part 6.) Plots particle energy to screen
 
