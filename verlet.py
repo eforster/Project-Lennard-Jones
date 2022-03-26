@@ -130,7 +130,7 @@ def mean_squared_displacement(particle_list, initial_particle_list, time, box_si
 
         mic_msd = minimum_image_convention(particle_list[i], initial_particle_list[i], box_size)
 
-        msd += np.linalg.norm((1 / N) * np.linalg.norm(mic_msd ** 2))
+        msd += (1 / N) * np.linalg.norm(mic_msd ** 2)
 
     return msd
 
