@@ -2,7 +2,7 @@
 Velocity Verlet Time Integrator for simulations of N particles.
 
 """
-
+import copy
 import sys
 import math
 import numpy as np
@@ -121,6 +121,19 @@ def lennard_jones_potential(particle_list, box_size, cut_off_radius, sep_matrix)
 
     return lj_potential
 
+def mean_squared_displacement(particle_list, initial_particle_list, time, box_size) :
+
+    N = len(particle_list)
+    msd = 0
+
+    for i in range(N) :
+
+        mic_msd = minimum_image_convention(particle_list[i], initial_particle_list[i], box_size)
+
+        msd += np.linalg.norm((1 / N) * np.linalg.norm(mic_msd ** 2))
+
+    return msd
+
 # Begin main code
 def main() :
     """
@@ -187,21 +200,30 @@ def main() :
                 xyz_trajectory = line6[0]
                 energies_file = line6[1]
                 msd_file = line6[2]
+                rdf_file = line6[3]
 
                 # Open output file
                 outfile1 = open(xyz_trajectory, "w")
                 outfile2 = open(energies_file, "w")
                 outfile3 = open(msd_file, "w")
+                outfile4 = open(rdf_file, "w")
 
-            
+                outfile2.write("Time, Kinetic Energy, Potential Energy, Total Energy\n")
+                outfile3.write("Time, MSD\n")
+                outfile4.write("Position, RDF(Position)\n")
+
     infile.close()
 
     # Part 2.) Specifies initial conditions
 
     cut_off_radius = 3.5
     time = 0.0
+    msd = 0
 
     particle_list = []
+    msd_list = []
+    rdf_list = []
+
     N = len(particle_list)
     outfile1.write(f"{str(number_particles)}\n")
 
@@ -213,7 +235,12 @@ def main() :
     box_size = box_size[0]
     md.set_initial_velocities(temperature, particle_list)
     separation_matrix = calculate_pair_separation(particle_list, box_size)
-    
+
+    initial_particle_list = copy.deepcopy(particle_list)
+    msd += mean_squared_displacement(particle_list, initial_particle_list, time, box_size)
+    msd_list.append(msd)
+    outfile3.write(f"{time}, {msd} \n")
+                                                                                                      
     for n in range(number_particles) :
 
         outfile1.write(f"{str(particle_list[n])}")
@@ -221,6 +248,7 @@ def main() :
         potential_energy = lennard_jones_potential(particle_list, box_size, cut_off_radius, separation_matrix[n])
         force_matrix = lennard_jones_force(particle_list, box_size, cut_off_radius)
         total_energy = kinetic_energy + potential_energy
+        outfile2.write(f"{time}, {kinetic_energy}, {potential_energy}, {total_energy}\n")
 
     time_list = [time]
     potential_energy_list = [potential_energy]
@@ -252,6 +280,11 @@ def main() :
             kinetic_energy = particle_list[m].calculate_system_kinetic_energy(particle_list)
             potential_energy = lennard_jones_potential(particle_list, box_size, cut_off_radius, separation_matrix[m])
             total_energy = kinetic_energy + potential_energy
+            outfile2.write(f"{time}, {kinetic_energy}, {potential_energy}, {total_energy}\n")
+
+        msd += (mean_squared_displacement(particle_list, initial_particle_list, time, box_size))
+        outfile3.write(f"{time}, {msd} \n")
+        msd_list.append(msd)
 
         kinetic_energy_list.append(kinetic_energy)
         potential_energy_list.append(potential_energy)
@@ -264,6 +297,7 @@ def main() :
     outfile1.close()
     outfile2.close()
     outfile3.close()
+    outfile4.close()
 
     # Part 6.) Plots particle energy to screen
 
@@ -284,6 +318,12 @@ def main() :
     pyplot.xlabel('Time : ')
     pyplot.ylabel('Potential Energy : ')
     pyplot.plot(time_list, potential_energy_list)
+    pyplot.show()
+
+    pyplot.title('MSD vs Time')
+    pyplot.xlabel('Time : ')
+    pyplot.ylabel('MSD : ')
+    pyplot.plot(time_list, msd_list)
     pyplot.show()
 
 
