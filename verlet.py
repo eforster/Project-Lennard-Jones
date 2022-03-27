@@ -130,9 +130,15 @@ def mean_squared_displacement(particle_list, initial_particle_list, time, box_si
 
         mic_msd = minimum_image_convention(particle_list[i], initial_particle_list[i], box_size)
 
-        msd += (1 / N) * np.linalg.norm(mic_msd ** 2)
+        msd = (1 / N) * np.linalg.norm(mic_msd) ** 2
 
     return msd
+
+def radial_distribution_function(particle_list, box_size, separations_matrix, ) :
+
+    separations_matrix = calculate_pair_separation(particle_list, box_size)
+
+
 
 # Begin main code
 def main() :
@@ -225,11 +231,10 @@ def main() :
     rdf_list = []
 
     N = len(particle_list)
-    outfile1.write(f"{str(number_particles)}\n")
-
+    
     for particle in range(number_particles) :
 
-        particle_list.append(Particle3D(label = f"n_{particle}", mass = 1, position = np.zeros(3), velocity = np.zeros(3)))
+        particle_list.append(Particle3D(label = f"particle_{particle}", mass = 1, position = np.zeros(3), velocity = np.zeros(3)))
 
     box_size, full_lattice = md.set_initial_positions(rho, particle_list)
     box_size = box_size[0]
@@ -237,13 +242,11 @@ def main() :
     separation_matrix = calculate_pair_separation(particle_list, box_size)
 
     initial_particle_list = copy.deepcopy(particle_list)
-    msd += mean_squared_displacement(particle_list, initial_particle_list, time, box_size)
+    msd = mean_squared_displacement(particle_list, initial_particle_list, time, box_size)
     msd_list.append(msd)
     outfile3.write(f"{time}, {msd} \n")
                                                                                                       
     for n in range(number_particles) :
-
-        outfile1.write(f"{str(particle_list[n])}")
         kinetic_energy = particle_list[n].calculate_system_kinetic_energy(particle_list)
         potential_energy = lennard_jones_potential(particle_list, box_size, cut_off_radius, separation_matrix[n])
         force_matrix = lennard_jones_force(particle_list, box_size, cut_off_radius)
@@ -257,15 +260,17 @@ def main() :
 
     for i in range(numstep) :
 
+        outfile1.write(f"{number_particles} \n")
+        outfile1.write(f"Point = {i} \n")
+
         for n in range(len(particle_list)) :
 
             particle_list[n].update_2nd_position(dt, np.sum(force_matrix[:, n], axis = 0) * (-1))
             particle_list[n].position = periodic_boundary_conditions(particle_list[n], box_size)
+
             outfile1.write(f"{str(particle_list[n])}")
 
-        for j in range(len(particle_list)) :
-
-            new_force_matrix = lennard_jones_force(particle_list, box_size, cut_off_radius)
+        new_force_matrix = lennard_jones_force(particle_list, box_size, cut_off_radius)
 
         for k in range(len(particle_list)) :
 
@@ -278,11 +283,12 @@ def main() :
         for m in range(len(particle_list)) :
 
             kinetic_energy = particle_list[m].calculate_system_kinetic_energy(particle_list)
-            potential_energy = lennard_jones_potential(particle_list, box_size, cut_off_radius, separation_matrix[m])
-            total_energy = kinetic_energy + potential_energy
-            outfile2.write(f"{time}, {kinetic_energy}, {potential_energy}, {total_energy}\n")
 
-        msd += (mean_squared_displacement(particle_list, initial_particle_list, time, box_size))
+        potential_energy = lennard_jones_potential(particle_list, box_size, cut_off_radius, separation_matrix)
+        total_energy = kinetic_energy + potential_energy
+        outfile2.write(f"{time}, {kinetic_energy}, {potential_energy}, {total_energy}\n")
+
+        msd = (mean_squared_displacement(particle_list, initial_particle_list, time, box_size))
         outfile3.write(f"{time}, {msd} \n")
         msd_list.append(msd)
 
