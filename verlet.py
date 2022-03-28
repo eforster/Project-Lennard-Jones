@@ -130,15 +130,35 @@ def mean_squared_displacement(particle_list, initial_particle_list, time, box_si
 
         mic_msd = minimum_image_convention(particle_list[i], initial_particle_list[i], box_size)
 
-        msd = (1 / N) * np.linalg.norm(mic_msd) ** 2
+        msd += (1 / N) * np.linalg.norm(mic_msd) ** 2
 
     return msd
 
-def radial_distribution_function(particle_list, box_size, separations_matrix, ) :
+def radial_distribution_function(particle_list, box_size, separations_matrix) :
 
-    separations_matrix = calculate_pair_separation(particle_list, box_size)
+    separation_matrix = calculate_pair_separation(particle_list, box_size)
+    N = len(particle_list)
 
+    for i in range(N) :
+        for j in range(i + 1, N) :
 
+            modulus_separation_matrix = np.linalg.norm(separation_matrix[i, j])
+
+    if modulus_separation_matrix > 0 :
+
+        mag_separations = modulus_separation_matrix
+
+    bin_size = 0.05
+    bins = 100
+
+    rdf, binned_r = np.histogram(mag_separations, bins = bins, range = (0, box_size))
+
+    dr = box_size / bins
+    rho_nought = 4 * math.pi * dr * binned_r ** 2
+
+    normalised_rdf = rdf / (N * rho_nought)
+
+    return normalised_rdf, binned_r
 
 # Begin main code
 def main() :
@@ -225,13 +245,15 @@ def main() :
     cut_off_radius = 3.5
     time = 0.0
     msd = 0
+    bins = 100
 
     particle_list = []
     msd_list = []
     rdf_list = []
+    binned_r_list = []
 
     N = len(particle_list)
-    
+
     for particle in range(number_particles) :
 
         particle_list.append(Particle3D(label = f"particle_{particle}", mass = 1, position = np.zeros(3), velocity = np.zeros(3)))
@@ -292,11 +314,20 @@ def main() :
         outfile3.write(f"{time}, {msd} \n")
         msd_list.append(msd)
 
+        normalised_rdf, binned_r = radial_distribution_function(particle_list, box_size, separation_matrix)
+        rdf_array = np.zeros(bins)
+
+        rdf_array += normalised_rdf(i) / numstep
+
+        rdf_list.append(rdf_array)
+        binned_r_list.append(binned_r)
+
+        outfile4.write(f" {binned_r} {rdf_list} \n")
+
         kinetic_energy_list.append(kinetic_energy)
         potential_energy_list.append(potential_energy)
         total_energy_list.append(total_energy)
         time_list.append(time)
-
      
     # Post-simulation:
     # Close output file
@@ -332,6 +363,11 @@ def main() :
     pyplot.plot(time_list, msd_list)
     pyplot.show()
 
+    pyplot.title('RDF vs r')
+    pyplot.xlabel('r : ')
+    pyplot.ylabel('RDF : ')
+    pyplot.plot(binned_r_list, rdf_list)
+    pyplot.show()
 
     # Part 7.) Measures the energy inaccuracy of the simulation and prints it to the screen
 
