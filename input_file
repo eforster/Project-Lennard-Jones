@@ -1,6 +1,6 @@
 # dt numstep number_particles
-0.01 1000 32
+0.005 2000 30
 # Temperature rho
-0.1 1
+1 0.05
 # output_file name for: xyz_trajectory energies msd rdf
 output_file.xyz energy_file msd_file rdf_file
