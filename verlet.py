@@ -1,5 +1,5 @@
 """
-Velocity Verlet Time Integrator for simulations of N particles.
+Velocity Verlet Time Integrator for simulations of N particles undergoing Lennard Jones interactions.
 
 """
 import copy
@@ -134,27 +134,32 @@ def mean_squared_displacement(particle_list, initial_particle_list, time, box_si
 
     return msd
 
-def radial_distribution_function(particle_list, box_size, separations_matrix) :
+def radial_distribution_function(particle_list, box_size, rho, separations_matrix) :
 
     separation_matrix = calculate_pair_separation(particle_list, box_size)
     N = len(particle_list)
+    mag_separations = []
 
     for i in range(N) :
         for j in range(i + 1, N) :
 
-            modulus_separation_matrix = np.linalg.norm(separation_matrix[i, j])
+            modulus_separation_matrix = np.linalg.norm(separation_matrix, axis = 2)
 
-    if modulus_separation_matrix > 0 :
+            if modulus_separation_matrix[i, j] > 0 :
 
-        mag_separations = modulus_separation_matrix
+                mag_separations.append(modulus_separation_matrix[i, j])
 
     bin_size = 0.05
     bins = 100
 
-    rdf, binned_r = np.histogram(mag_separations, bins = bins, range = (0, box_size))
+    rdf_histogram = np.histogram(mag_separations, bins = bins, range = (0, box_size))
+    rdf = rdf_histogram[0]
+    start_binned_r = rdf_histogram[1]
+
+    binned_r = start_binned_r[1:]
 
     dr = box_size / bins
-    rho_nought = 4 * math.pi * dr * binned_r ** 2
+    rho_nought = 4 * math.pi * rho * dr * binned_r ** 2
 
     normalised_rdf = rdf / (N * rho_nought)
 
@@ -246,11 +251,10 @@ def main() :
     time = 0.0
     msd = 0
     bins = 100
+    rdf_array = np.zeros(bins)
 
     particle_list = []
     msd_list = []
-    rdf_list = []
-    binned_r_list = []
 
     N = len(particle_list)
 
@@ -273,7 +277,7 @@ def main() :
         potential_energy = lennard_jones_potential(particle_list, box_size, cut_off_radius, separation_matrix[n])
         force_matrix = lennard_jones_force(particle_list, box_size, cut_off_radius)
         total_energy = kinetic_energy + potential_energy
-        outfile2.write(f"{time}, {kinetic_energy}, {potential_energy}, {total_energy}\n")
+    outfile2.write(f"{time}, {kinetic_energy}, {potential_energy}, {total_energy}\n")
 
     time_list = [time]
     potential_energy_list = [potential_energy]
@@ -314,20 +318,21 @@ def main() :
         outfile3.write(f"{time}, {msd} \n")
         msd_list.append(msd)
 
-        normalised_rdf, binned_r = radial_distribution_function(particle_list, box_size, separation_matrix)
-        rdf_array = np.zeros(bins)
+        normalised_rdf, binned_r = radial_distribution_function(particle_list, box_size, rho, separation_matrix)
 
-        rdf_array += normalised_rdf(i) / numstep
-
-        rdf_list.append(rdf_array)
-        binned_r_list.append(binned_r)
-
-        outfile4.write(f" {binned_r} {rdf_list} \n")
+        rdf_array += normalised_rdf
 
         kinetic_energy_list.append(kinetic_energy)
         potential_energy_list.append(potential_energy)
         total_energy_list.append(total_energy)
         time_list.append(time)
+
+
+    average_rdf = rdf_array / numstep
+
+    for p in range(len(average_rdf)) :
+
+        outfile4.write(f" {binned_r[p]} {average_rdf[p]} \n")
      
     # Post-simulation:
     # Close output file
@@ -366,11 +371,10 @@ def main() :
     pyplot.title('RDF vs r')
     pyplot.xlabel('r : ')
     pyplot.ylabel('RDF : ')
-    pyplot.plot(binned_r_list, rdf_list)
+    pyplot.plot(binned_r, average_rdf)
     pyplot.show()
 
     # Part 7.) Measures the energy inaccuracy of the simulation and prints it to the screen
-
 
     initial_energy_k = kinetic_energy_list[0]
     initial_energy_p = potential_energy_list[0]
