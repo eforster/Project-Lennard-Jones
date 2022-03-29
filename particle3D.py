@@ -9,7 +9,7 @@ Included methods:
 - calculations
 - updates to positions and velocities
 
-Author: s1639706
+Author: E Forster, s1639706
 """
 
 import math
@@ -21,14 +21,12 @@ class Particle3D(object) :
     Class to describe point-particles in 3D space.
 
         Properties:
-
-    label: name of the particle
-    mass: mass of the particle
-    position: position of the particle
-    velocity: velocity of the particle
+    label : name of the particle
+    mass : mass of the particle
+    position : position of the particle
+    velocity : velocity of the particle
 
         Methods:
-
     __init__ : initialises a particle in 3D space
     __str__ : sets up an x, y, z coordinate system for a particle
     calculate_kinetic_energy : computes the kinetic energy of the particle
@@ -38,7 +36,6 @@ class Particle3D(object) :
     update_velocity : updates the velocity
 
         Static Methods :
-
     new_3d_particle : initializes a P3D instance from a  file handle
     calculate_system_kinetic_energy : computes the total kinetic energy of a 3D particle list
     calculate_center_of_mass_velocity : computes total mass and the center-of-mass velocity of a 3D particle list
@@ -65,7 +62,7 @@ class Particle3D(object) :
         """
         (x, y, z) compliant string with format :
 
-        <label>    <x>  <y>  <z>
+        <label> <x> <y> <z>
 
         :return xyz_string: (label, x, y, z)
         """
@@ -81,7 +78,7 @@ class Particle3D(object) :
         :return kinetic_energy: float, (1/2) * mass * (velocity ** 2)
         """
 
-        kinetic_energy = (1/2) * self.mass * (np.linalg.norm(self.velocity) ** 2)
+        kinetic_energy = (1 / 2) * self.mass * (np.linalg.norm(self.velocity) ** 2)
         return kinetic_energy
 
     def calculate_momentum(self) :
@@ -126,7 +123,7 @@ class Particle3D(object) :
         :param force: float, force on particle
         """
 
-        self.velocity = self.velocity + dt * (force/self.mass)
+        self.velocity = self.velocity + dt * (force / self.mass)
 
     @staticmethod
 
@@ -166,7 +163,6 @@ class Particle3D(object) :
         except IndexError :
 
             print("Error: Incorrect file format")
-
 
     @staticmethod
 

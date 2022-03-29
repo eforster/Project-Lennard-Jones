@@ -1,6 +1,11 @@
 """
 Velocity Verlet Time Integrator for simulations of N particles undergoing Lennard Jones interactions.
 
+Produces plots of the particle's total energy, kinetic energy, potential energy, mean squared displacement and radial
+distribution function, all as functions of time.  This is saved to files for user convenience and further analysis.
+
+
+
 """
 import copy
 import sys
