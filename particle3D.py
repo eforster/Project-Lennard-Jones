@@ -1,7 +1,7 @@
 """
 Particle3D class to describe point particles in 3D space.
 
-An instance describes a particle in Euclidean 3D space:
+An instance describes a particle in Euclidean 3D space :
 - Velocity and Position are [3] arrays
 
 Included methods:
@@ -9,7 +9,7 @@ Included methods:
 - calculations
 - updates to positions and velocities
 
-Author: E Forster, s1639706
+Author : E Forster, s1639706
 """
 
 import math
@@ -18,15 +18,15 @@ import numpy as np
 class Particle3D(object) :
 
     """
-    Class to describe point-particles in 3D space.
+    Class to describe point-particles in 3D space
 
-        Properties:
+        Properties :
     label : name of the particle
     mass : mass of the particle
     position : position of the particle
     velocity : velocity of the particle
 
-        Methods:
+        Methods :
     __init__ : initialises a particle in 3D space
     __str__ : sets up an x, y, z coordinate system for a particle
     calculate_kinetic_energy : computes the kinetic energy of the particle
@@ -82,6 +82,7 @@ class Particle3D(object) :
         return kinetic_energy
 
     def calculate_momentum(self) :
+
         """
         Calculates and returns the momentum of a Particle3D instance
 
@@ -130,9 +131,9 @@ class Particle3D(object) :
     def new_3d_particle(input_file) :
 
         """
-        Initialises a Particle3D instance when given an input file handle.
+        Initialises a Particle3D instance when given an input file handle
 
-        The input file should contain one line per particle in the following format:
+        The input file should contain one line per particle in the following format :
         label   <mass>   <x> <y> <z>   <vx> <vy> <vz>
 
         :param input_file: readable file handle in the above format
@@ -162,7 +163,7 @@ class Particle3D(object) :
 
         except IndexError :
 
-            print("Error: Incorrect file format")
+            print("Error : Incorrect file format")
 
     @staticmethod
 

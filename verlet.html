@@ -1,0 +1,154 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module verlet</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>verlet</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:c%3A%5Cusers%5Cforster%5Cdocuments%5Cuniversity%5Cy3%2021-22%5Ccomputer%20modelling%5Cproject%5Cverlet.py">c:\users\forster\documents\university\y3 21-22\computer modelling\project\verlet.py</a></font></td></tr></table>
+    <p><tt>Velocity&nbsp;Verlet&nbsp;Time&nbsp;Integrator&nbsp;for&nbsp;simulations&nbsp;of&nbsp;N&nbsp;particles&nbsp;undergoing&nbsp;Lennard&nbsp;Jones&nbsp;interactions&nbsp;using&nbsp;periodic&nbsp;boundary&nbsp;conditions.<br>
+&nbsp;<br>
+Produces&nbsp;plots&nbsp;of&nbsp;the&nbsp;particle's&nbsp;total&nbsp;energy,&nbsp;kinetic&nbsp;energy,&nbsp;potential&nbsp;energy,&nbsp;mean&nbsp;squared&nbsp;displacement&nbsp;and&nbsp;radial<br>
+distribution&nbsp;function,&nbsp;all&nbsp;as&nbsp;functions&nbsp;of&nbsp;time.&nbsp;&nbsp;This&nbsp;is&nbsp;saved&nbsp;to&nbsp;output&nbsp;files&nbsp;for&nbsp;user&nbsp;convenience&nbsp;and&nbsp;further&nbsp;analysis.<br>
+&nbsp;<br>
+Included&nbsp;methods&nbsp;for&nbsp;calculating&nbsp;:<br>
+-&nbsp;periodic&nbsp;boundary&nbsp;conditions&nbsp;and&nbsp;minimum&nbsp;image&nbsp;conventions<br>
+-&nbsp;pair&nbsp;separations&nbsp;between&nbsp;particle&nbsp;pairs<br>
+-&nbsp;Lennard&nbsp;Jones&nbsp;Force<br>
+-&nbsp;Lennard&nbsp;Jones&nbsp;Potential<br>
+-&nbsp;Mean&nbsp;Squared&nbsp;Displacement<br>
+-&nbsp;Radial&nbsp;Distribution&nbsp;Function<br>
+&nbsp;<br>
+Note&nbsp;:&nbsp;capital&nbsp;R&nbsp;indicates&nbsp;a&nbsp;vector&nbsp;R&nbsp;whereas&nbsp;lower-case&nbsp;r&nbsp;would&nbsp;indicate&nbsp;the&nbsp;modulus&nbsp;of&nbsp;vector&nbsp;R<br>
+&nbsp;<br>
+Author&nbsp;:&nbsp;E&nbsp;Forster,&nbsp;s1639706</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="copy.html">copy</a><br>
+<a href="math.html">math</a><br>
+</td><td width="25%" valign=top><a href="mdutilities.html">mdutilities</a><br>
+<a href="numpy.html">numpy</a><br>
+</td><td width="25%" valign=top><a href="matplotlib.pyplot.html">matplotlib.pyplot</a><br>
+<a href="sys.html">sys</a><br>
+</td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-calculate_pair_separation"><strong>calculate_pair_separation</strong></a>(particle_list, box_size)</dt><dd><tt>Calculates&nbsp;all&nbsp;separations&nbsp;between&nbsp;each&nbsp;pair&nbsp;of&nbsp;particles,&nbsp;implementing&nbsp;MIC<br>
+&nbsp;<br>
+:param&nbsp;particle_list:&nbsp;list&nbsp;of&nbsp;Particle3D&nbsp;instances<br>
+:param&nbsp;box_size:&nbsp;simulation&nbsp;box&nbsp;of&nbsp;size&nbsp;L,&nbsp;vector&nbsp;(L,&nbsp;L,&nbsp;L)<br>
+&nbsp;<br>
+:return&nbsp;separations_matrix:&nbsp;a&nbsp;matrix&nbsp;of&nbsp;separations&nbsp;between&nbsp;each&nbsp;pair&nbsp;of&nbsp;particles</tt></dd></dl>
+ <dl><dt><a name="-lennard_jones_force"><strong>lennard_jones_force</strong></a>(particle_list, box_size, cut_off_radius)</dt><dd><tt>Computes&nbsp;the&nbsp;Lennard&nbsp;Jones&nbsp;Force&nbsp;using&nbsp;this&nbsp;equation&nbsp;:<br>
+&nbsp;<br>
+F_i&nbsp;=&nbsp;-&nbsp;48&nbsp;*&nbsp;summation_j&nbsp;[r&nbsp;**&nbsp;(-&nbsp;14)&nbsp;-&nbsp;0.5&nbsp;*&nbsp;R&nbsp;**&nbsp;(-&nbsp;8)]&nbsp;(R_i&nbsp;-&nbsp;R_j)<br>
+&nbsp;<br>
+where&nbsp;:<br>
+-&nbsp;summation_j&nbsp;=&nbsp;large&nbsp;sigma,&nbsp;meaning&nbsp;to&nbsp;sum&nbsp;over&nbsp;all&nbsp;j&nbsp;particles<br>
+-&nbsp;r&nbsp;=&nbsp;the&nbsp;modulus&nbsp;of&nbsp;R_i&nbsp;-&nbsp;R_j<br>
+&nbsp;<br>
+:param&nbsp;particle_list:&nbsp;list&nbsp;of&nbsp;Particle3D&nbsp;instances<br>
+:param&nbsp;box_size:&nbsp;simulation&nbsp;box&nbsp;of&nbsp;size&nbsp;L,&nbsp;vector&nbsp;(L,&nbsp;L,&nbsp;L)<br>
+:param&nbsp;cut_off_radius:&nbsp;allows&nbsp;for&nbsp;setting&nbsp;forces&nbsp;to&nbsp;zero&nbsp;beyond&nbsp;this&nbsp;radius<br>
+&nbsp;<br>
+:return&nbsp;lj_force_matrix:&nbsp;a&nbsp;matrix&nbsp;array&nbsp;of&nbsp;the&nbsp;force&nbsp;on&nbsp;a&nbsp;particle,&nbsp;as&nbsp;the&nbsp;sum&nbsp;of&nbsp;the&nbsp;force&nbsp;on&nbsp;it&nbsp;from&nbsp;all&nbsp;other&nbsp;particles</tt></dd></dl>
+ <dl><dt><a name="-lennard_jones_potential"><strong>lennard_jones_potential</strong></a>(particle_list, box_size, cut_off_radius, sep_matrix)</dt><dd><tt>Computes&nbsp;the&nbsp;Lennard&nbsp;Jones&nbsp;Potential&nbsp;from&nbsp;this&nbsp;equation&nbsp;:<br>
+&nbsp;<br>
+U&nbsp;=&nbsp;summation_i&nbsp;*&nbsp;summation_j_greater_than_i&nbsp;*&nbsp;4&nbsp;*&nbsp;[r&nbsp;**&nbsp;(-&nbsp;12)&nbsp;-&nbsp;r&nbsp;**&nbsp;(-6)]<br>
+&nbsp;<br>
+where&nbsp;:<br>
+-&nbsp;summation_i&nbsp;=&nbsp;large&nbsp;sigma,&nbsp;meaning&nbsp;to&nbsp;sum&nbsp;over&nbsp;all&nbsp;i&nbsp;particles<br>
+-&nbsp;summation_j_greater_than_i&nbsp;=&nbsp;large&nbsp;sigma,&nbsp;meaning&nbsp;to&nbsp;sum&nbsp;over&nbsp;all&nbsp;j&nbsp;&gt;&nbsp;i&nbsp;particles<br>
+-&nbsp;r&nbsp;=&nbsp;modulus&nbsp;of&nbsp;R_i&nbsp;-&nbsp;R_j<br>
+&nbsp;<br>
+:param&nbsp;sep_matrix:&nbsp;a&nbsp;matrix&nbsp;of&nbsp;separations&nbsp;between&nbsp;each&nbsp;pair&nbsp;of&nbsp;particles<br>
+:param&nbsp;cut_off_radius:&nbsp;allows&nbsp;for&nbsp;setting&nbsp;the&nbsp;potential&nbsp;for&nbsp;separation&nbsp;&gt;&nbsp;cut_off_radius&nbsp;to&nbsp;be&nbsp;the&nbsp;potential&nbsp;calculated&nbsp;from&nbsp;this&nbsp;radius<br>
+:param&nbsp;particle_list:&nbsp;list&nbsp;of&nbsp;Particle3D&nbsp;instances<br>
+:param&nbsp;box_size:&nbsp;simulation&nbsp;box&nbsp;of&nbsp;size&nbsp;L,&nbsp;vector&nbsp;(L,&nbsp;L,&nbsp;L)<br>
+&nbsp;<br>
+:return&nbsp;lj_potential:&nbsp;the&nbsp;Lennard&nbsp;Jones&nbsp;potential&nbsp;of&nbsp;particles</tt></dd></dl>
+ <dl><dt><a name="-main"><strong>main</strong></a>()</dt><dd><tt>The&nbsp;main&nbsp;method&nbsp;carries&nbsp;out&nbsp;the&nbsp;simulation&nbsp;in&nbsp;a&nbsp;few&nbsp;parts&nbsp;:<br>
+&nbsp;<br>
+1.)&nbsp;Reads&nbsp;in&nbsp;data&nbsp;file&nbsp;from&nbsp;the&nbsp;command&nbsp;line&nbsp;and&nbsp;input&nbsp;file<br>
+2.)&nbsp;Specifies&nbsp;initial&nbsp;conditions&nbsp;and&nbsp;initialises&nbsp;data&nbsp;lists&nbsp;for&nbsp;plotting&nbsp;later<br>
+3.)&nbsp;Starts&nbsp;a&nbsp;time&nbsp;integration&nbsp;loop<br>
+4.)&nbsp;Plots&nbsp;the&nbsp;system&nbsp;total&nbsp;energy&nbsp;to&nbsp;screen<br>
+5.)&nbsp;Plots&nbsp;the&nbsp;system&nbsp;kinetic&nbsp;energy&nbsp;to&nbsp;screen<br>
+6.)&nbsp;Plots&nbsp;the&nbsp;system&nbsp;potential&nbsp;energy&nbsp;to&nbsp;screen<br>
+7.)&nbsp;Plots&nbsp;the&nbsp;mean&nbsp;squared&nbsp;displacement&nbsp;to&nbsp;screen<br>
+8.)&nbsp;Plots&nbsp;the&nbsp;Radial&nbsp;Distribution&nbsp;Function&nbsp;to&nbsp;screen<br>
+9.)&nbsp;Measures&nbsp;the&nbsp;energy&nbsp;inaccuracy&nbsp;of&nbsp;the&nbsp;simulation&nbsp;and&nbsp;prints&nbsp;it&nbsp;to&nbsp;the&nbsp;terminal</tt></dd></dl>
+ <dl><dt><a name="-mean_squared_displacement"><strong>mean_squared_displacement</strong></a>(particle_list, initial_particle_list, time, box_size)</dt><dd><tt>Calculates&nbsp;the&nbsp;Mean&nbsp;Squared&nbsp;Displacement,&nbsp;MSD,&nbsp;a&nbsp;measure&nbsp;of&nbsp;how&nbsp;far&nbsp;particles&nbsp;have&nbsp;moved&nbsp;on&nbsp;average&nbsp;from&nbsp;their&nbsp;initial&nbsp;position&nbsp;at&nbsp;some&nbsp;time,&nbsp;t,<br>
+whilst&nbsp;still&nbsp;obeying&nbsp;minimum&nbsp;image&nbsp;convention&nbsp;:<br>
+&nbsp;<br>
+MSD(t)&nbsp;=&nbsp;1&nbsp;/&nbsp;N&nbsp;*&nbsp;summation_i&nbsp;*&nbsp;(magnitude(R_i(t)&nbsp;-&nbsp;R_i(0))&nbsp;**&nbsp;2)<br>
+&nbsp;<br>
+where&nbsp;:<br>
+-&nbsp;N&nbsp;=&nbsp;number&nbsp;of&nbsp;particles<br>
+-&nbsp;summation_i&nbsp;=&nbsp;large&nbsp;sigma,&nbsp;meaning&nbsp;to&nbsp;sum&nbsp;over&nbsp;all&nbsp;i&nbsp;particles<br>
+-&nbsp;R_i(t)&nbsp;=&nbsp;position&nbsp;vector&nbsp;for&nbsp;particles&nbsp;i&nbsp;at&nbsp;time,&nbsp;t<br>
+-&nbsp;R_i(0)&nbsp;=&nbsp;initial&nbsp;position&nbsp;of&nbsp;i&nbsp;particles<br>
+&nbsp;<br>
+:param&nbsp;particle_list:&nbsp;list&nbsp;of&nbsp;Particle3D&nbsp;instances<br>
+:param&nbsp;initial_particle_list:&nbsp;list&nbsp;of&nbsp;Particle3D&nbsp;instances&nbsp;before&nbsp;any&nbsp;calculation&nbsp;manipulation<br>
+:param&nbsp;time:<br>
+:param&nbsp;box_size:&nbsp;simulation&nbsp;box&nbsp;of&nbsp;size&nbsp;L,&nbsp;vector&nbsp;(L,&nbsp;L,&nbsp;L)<br>
+&nbsp;<br>
+:return&nbsp;msd:&nbsp;the&nbsp;Mean&nbsp;Squared&nbsp;Displacement&nbsp;of&nbsp;particles</tt></dd></dl>
+ <dl><dt><a name="-minimum_image_convention"><strong>minimum_image_convention</strong></a>(particle, different_particle, box_size)</dt><dd><tt>Minimum&nbsp;Image&nbsp;Convention&nbsp;chooses&nbsp;the&nbsp;nearest&nbsp;neighbour&nbsp;of&nbsp;all&nbsp;the&nbsp;surrounding&nbsp;identical&nbsp;images&nbsp;of&nbsp;each&nbsp;particle&nbsp;:<br>
+&nbsp;<br>
+MIC(R_12)&nbsp;=&nbsp;((R_12&nbsp;+&nbsp;L/2)&nbsp;mod&nbsp;L)&nbsp;-&nbsp;L&nbsp;/&nbsp;2<br>
+&nbsp;<br>
+where&nbsp;:<br>
+-&nbsp;R_12&nbsp;=&nbsp;R_1&nbsp;-&nbsp;R_2,&nbsp;the&nbsp;difference&nbsp;between&nbsp;two&nbsp;different&nbsp;particle&nbsp;positions<br>
+&nbsp;<br>
+:param&nbsp;particle:&nbsp;a&nbsp;Particle3D&nbsp;instance<br>
+:param&nbsp;different_particle:&nbsp;a&nbsp;different&nbsp;Particle3D&nbsp;instance<br>
+:param&nbsp;box_size:&nbsp;simulation&nbsp;box&nbsp;of&nbsp;size&nbsp;L,&nbsp;vector&nbsp;(L,&nbsp;L,&nbsp;L)<br>
+&nbsp;<br>
+:return&nbsp;mic:&nbsp;nearest&nbsp;neighbour&nbsp;location</tt></dd></dl>
+ <dl><dt><a name="-periodic_boundary_conditions"><strong>periodic_boundary_conditions</strong></a>(particle, box_size)</dt><dd><tt>Periodic&nbsp;Boundary&nbsp;Conditions&nbsp;makes&nbsp;each&nbsp;particle&nbsp;in&nbsp;the&nbsp;simulation&nbsp;box&nbsp;has&nbsp;a&nbsp;mirror&nbsp;image&nbsp;in&nbsp;every&nbsp;other&nbsp;box&nbsp;:<br>
+&nbsp;<br>
+PBC(X)&nbsp;=&nbsp;X&nbsp;mod&nbsp;L<br>
+&nbsp;<br>
+where&nbsp;:<br>
+-&nbsp;X&nbsp;=&nbsp;the&nbsp;vector&nbsp;representation&nbsp;of&nbsp;a&nbsp;particle&nbsp;position<br>
+&nbsp;<br>
+:param&nbsp;particle:&nbsp;a&nbsp;Particle3D&nbsp;instance<br>
+:param&nbsp;box_size:&nbsp;simulation&nbsp;box&nbsp;of&nbsp;size&nbsp;L,&nbsp;vector&nbsp;(L,&nbsp;L,&nbsp;L)<br>
+&nbsp;<br>
+:return&nbsp;pbc:&nbsp;makes&nbsp;sure&nbsp;every&nbsp;moving&nbsp;particle&nbsp;stays&nbsp;in&nbsp;the&nbsp;simulation&nbsp;box</tt></dd></dl>
+ <dl><dt><a name="-radial_distribution_function"><strong>radial_distribution_function</strong></a>(particle_list, box_size, rho, separations_matrix)</dt><dd><tt>Calculates&nbsp;the&nbsp;Radial&nbsp;Distribution&nbsp;Function,&nbsp;RDF,&nbsp;a&nbsp;measure&nbsp;of&nbsp;the&nbsp;probability&nbsp;to&nbsp;find&nbsp;a&nbsp;particle&nbsp;at&nbsp;a&nbsp;given&nbsp;distance&nbsp;from&nbsp;a&nbsp;reference&nbsp;particle&nbsp;:<br>
+&nbsp;<br>
+g(r)&nbsp;=&nbsp;(1&nbsp;/&nbsp;N&nbsp;*&nbsp;rho_nought(r))&nbsp;*&nbsp;summation_ij&nbsp;(dirac_delta(r_ij&nbsp;-&nbsp;r))<br>
+&nbsp;<br>
+where&nbsp;:<br>
+-&nbsp;g(r)&nbsp;=&nbsp;the&nbsp;RDF<br>
+-&nbsp;N&nbsp;=&nbsp;number&nbsp;of&nbsp;particles<br>
+-&nbsp;rho_nought(r)&nbsp;=&nbsp;representation&nbsp;of&nbsp;expected&nbsp;value&nbsp;for&nbsp;RDF&nbsp;for&nbsp;a&nbsp;perfectly&nbsp;homogeneous&nbsp;system&nbsp;=&nbsp;4&nbsp;*&nbsp;pi&nbsp;*&nbsp;rho_star&nbsp;*&nbsp;r&nbsp;**&nbsp;2&nbsp;*&nbsp;dr<br>
+-&nbsp;summation_ij&nbsp;=&nbsp;big&nbsp;sigma,&nbsp;meaning&nbsp;to&nbsp;sum&nbsp;over&nbsp;all&nbsp;particles&nbsp;i&nbsp;and&nbsp;j<br>
+-&nbsp;dirac_delta&nbsp;=&nbsp;describes&nbsp;positions&nbsp;in&nbsp;this&nbsp;function<br>
+&nbsp;<br>
+Given&nbsp;the&nbsp;magic&nbsp;of&nbsp;Python&nbsp;and&nbsp;numpy,&nbsp;using&nbsp;the&nbsp;magnitudes&nbsp;of&nbsp;the&nbsp;pair&nbsp;separations&nbsp;matrix,&nbsp;numpy&nbsp;histogram&nbsp;was&nbsp;used&nbsp;to&nbsp;obtain&nbsp;the&nbsp;rdf&nbsp;and&nbsp;positions&nbsp;for&nbsp;later&nbsp;plotting<br>
+&nbsp;<br>
+:param&nbsp;particle_list:&nbsp;list&nbsp;of&nbsp;Particle3D&nbsp;instances<br>
+:param&nbsp;box_size:&nbsp;simulation&nbsp;box&nbsp;of&nbsp;size&nbsp;L,&nbsp;vector&nbsp;(L,&nbsp;L,&nbsp;L)<br>
+:param&nbsp;rho:&nbsp;particle&nbsp;density<br>
+:param&nbsp;separations_matrix:&nbsp;a&nbsp;matrix&nbsp;of&nbsp;separations&nbsp;between&nbsp;each&nbsp;pair&nbsp;of&nbsp;particles<br>
+&nbsp;<br>
+:return&nbsp;normalised&nbsp;rdf:&nbsp;the&nbsp;y-axis&nbsp;of&nbsp;the&nbsp;RDF<br>
+:return&nbsp;binned_r:&nbsp;the&nbsp;x-axis&nbsp;of&nbsp;the&nbsp;RDF,&nbsp;known&nbsp;as&nbsp;binned&nbsp;r&nbsp;(position)&nbsp;values</tt></dd></dl>
+</td></tr></table>
+</body></html>
