@@ -456,40 +456,40 @@ def main() :
     # Part 4.) Plots the system total energy to screen
 
     pyplot.title('Total Energy vs Time')
-    pyplot.xlabel('Time : ')
-    pyplot.ylabel('Energy : ')
+    pyplot.xlabel('Time [t] : ')
+    pyplot.ylabel('Total Energy [epsilon] : ')
     pyplot.plot(time_list, total_energy_list)
     pyplot.show()
 
     # Part 5.) Plots the system kinetic energy to screen
 
     pyplot.title('Kinetic Energy vs Time')
-    pyplot.xlabel('Time : ')
-    pyplot.ylabel('Kinetic Energy : ')
+    pyplot.xlabel('Time [t] : ')
+    pyplot.ylabel('Kinetic Energy [epsilon] : ')
     pyplot.plot(time_list, kinetic_energy_list)
     pyplot.show()
 
     # Part 6.) Plots the system potential energy to screen
 
     pyplot.title('Potential Energy vs Time')
-    pyplot.xlabel('Time : ')
-    pyplot.ylabel('Potential Energy : ')
+    pyplot.xlabel('Time [t] : ')
+    pyplot.ylabel('Potential Energy [epsilon] : ')
     pyplot.plot(time_list, potential_energy_list)
     pyplot.show()
 
     # Part 7.) Plots the mean squared displacement to screen
 
     pyplot.title('MSD vs Time')
-    pyplot.xlabel('Time : ')
-    pyplot.ylabel('MSD : ')
+    pyplot.xlabel('Time [t] : ')
+    pyplot.ylabel('MSD [sigma ** 2] : ')
     pyplot.plot(time_list, msd_list)
     pyplot.show()
 
     # Part 8.) Plots the Radial Distribution Function to screen
 
     pyplot.title('RDF vs r')
-    pyplot.xlabel('r : ')
-    pyplot.ylabel('RDF : ')
+    pyplot.xlabel('r [sigma] : ')
+    pyplot.ylabel('RDF [r] : ')
     pyplot.plot(binned_r, average_rdf)
     pyplot.show()
 
@@ -506,7 +506,7 @@ def main() :
     delta_energy = max_energy - min_energy
     energy_inaccuracy = delta_energy / initial_energy
 
-    print("Energy inaccuracy : +/-", energy_inaccuracy)
+    print("Energy inaccuracy : +/-", energy_inaccuracy, "[epsilon]")
 
 # Execute main method, but only when directly invoked
 if __name__ == "__main__" :
