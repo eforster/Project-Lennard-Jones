@@ -313,7 +313,7 @@ def main() :
             line6 = line6.split()               # Separates the parameters in line 6
 
             # Helpful error message if there is not 4 parameters in line 6
-            if len(line6) != 4 :
+            if len(line6) != 5 :
                 print("Wrong number of arguments in line 6 of input data file, i.e. trajectory file, energy file, msd file and rdf file. ")
 
             else :
@@ -321,6 +321,7 @@ def main() :
                 energies_file = line6[1]        # Reads in energies output file
                 msd_file = line6[2]             # Reads in msd output file
                 rdf_file = line6[3]             # Reads in rdf output file
+                r_file = line6[4]
 
                 # Open output file
                 outfile1 = open(xyz_trajectory, "w")
@@ -332,6 +333,7 @@ def main() :
                 outfile2.write("Time, Kinetic Energy, Potential Energy, Total Energy\n")
                 outfile3.write("Time, MSD\n")
                 outfile4.write("Position, RDF(Position)\n")
+                outfile5 = open(r_file, "w")
 
     infile.close()
 
@@ -365,6 +367,7 @@ def main() :
     msd = mean_squared_displacement(particle_list, initial_particle_list, time, box_size)
     msd_list.append(msd)
     outfile3.write(f"{time}, {msd} \n")
+    #outfile3.write(f"{msd}\n")
 
     # Calculates the initial system energies and forces
     for n in range(number_particles) :
@@ -375,12 +378,14 @@ def main() :
 
     # Writes initial system energies to file
     outfile2.write(f"{time}, {kinetic_energy}, {potential_energy}, {total_energy}\n")
+    #outfile2.write(f"{total_energy}\n")
 
     # Initialises lists for plotting later
     time_list = [time]
     potential_energy_list = [potential_energy]
     kinetic_energy_list = [kinetic_energy]
     total_energy_list = [total_energy]
+    #outfile1.write(f"{time}\n")
 
     # Part 3.) Starts a time integration loop
 
@@ -412,6 +417,7 @@ def main() :
 
         # Increases time
         time += dt
+        #outfile1.write(f"{time}\n")
 
         # Calculates the new kinetic energy for the system
         for m in range(len(particle_list)) :
@@ -422,10 +428,12 @@ def main() :
         potential_energy = lennard_jones_potential(particle_list, box_size, cut_off_radius, separation_matrix)
         total_energy = kinetic_energy + potential_energy
         outfile2.write(f"{time}, {kinetic_energy}, {potential_energy}, {total_energy}\n")
+        #outfile2.write(f"{total_energy}\n")
 
         # Calculates the updated msd and write to file
         msd = (mean_squared_displacement(particle_list, initial_particle_list, time, box_size))
         outfile3.write(f"{time}, {msd} \n")
+        #outfile3.write(f"{msd}\n")
         msd_list.append(msd)
 
         # Calculates data required for the RDF function
@@ -445,6 +453,8 @@ def main() :
     for p in range(len(average_rdf)) :
 
         outfile4.write(f" {binned_r[p]} {average_rdf[p]} \n")
+        #outfile4.write(f"{average_rdf[p]}\n")
+        #outfile5.write(f"{binned_r[p]}\n")
      
     # Post-simulation:
     # Close output file
@@ -452,6 +462,7 @@ def main() :
     outfile2.close()
     outfile3.close()
     outfile4.close()
+    outfile5.close()
 
     # Part 4.) Plots the system total energy to screen
 
